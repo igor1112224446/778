@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: разговорный поиск, каталог с AI-совпадением, инвестиционный калькулятор доходности, аналитика районов и панель агента.">
+<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: разговорный поиск с картой и карточкой объекта (в стиле Яндекс.Недвижимости), каталог, инвестиционный калькулятор, аналитика районов и панель агента.">
 <title>RealtorAI</title>
 <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@200..600,0..1&display=swap" rel="stylesheet">
@@ -33,6 +33,13 @@
     --shadow-lg: 0 4px 10px rgba(27,59,54,.05), 0 30px 60px -20px rgba(27,59,54,.18);
     --glass-bg: rgba(255,255,255,.90);
     --radius-s:8px; --radius-m:12px; --radius-l:16px; --radius-xl:20px;
+    --map-bg:#eae6d8;
+    --map-park:#cfe1bd;
+    --map-road:#ffffff;
+    --map-pin:#2f6fed;
+    --map-badge:#7c4dff;
+    --map-yellow:#ffcc00;
+    --map-yellow-ink:#1a1400;
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark){
@@ -60,6 +67,13 @@
       --shadow: 0 1px 2px rgba(0,0,0,.3), 0 16px 34px -16px rgba(0,0,0,.6);
       --shadow-lg: 0 4px 10px rgba(0,0,0,.4), 0 32px 64px -24px rgba(0,0,0,.7);
       --glass-bg: rgba(24,36,32,.86);
+      --map-bg:#232b23;
+      --map-park:#2b3a26;
+      --map-road:#33403a;
+      --map-pin:#5b8fff;
+      --map-badge:#a389ff;
+      --map-yellow:#ffcc00;
+      --map-yellow-ink:#1a1400;
       color-scheme: dark;
     }
   }
@@ -72,6 +86,8 @@
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 16px 34px -16px rgba(0,0,0,.6);
     --shadow-lg: 0 4px 10px rgba(0,0,0,.4), 0 32px 64px -24px rgba(0,0,0,.7);
     --glass-bg: rgba(24,36,32,.86);
+    --map-bg:#232b23; --map-park:#2b3a26; --map-road:#33403a; --map-pin:#5b8fff; --map-badge:#a389ff;
+    --map-yellow:#ffcc00; --map-yellow-ink:#1a1400;
     color-scheme: dark;
   }
 
@@ -145,38 +161,95 @@
   h1.headline em{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:var(--secondary);font-weight:600;}
   .lede{font-size:1.1rem;color:var(--ink-soft);max-width:56ch;margin:16px auto 0;}
 
-  /* terminal */
-  .search-col{max-width:920px;margin:0 auto;}
-  .terminal-shell{
-    margin:40px auto 0;border-radius:28px;padding:14px 26px 22px;
-    display:flex;flex-direction:column;gap:6px;
+  /* ---------- AI chat + map (Yandex.Realty-style) ---------- */
+  .yx-shell{
+    max-width:1180px;margin:40px auto 0;display:grid;grid-template-columns:1fr;
+    border-radius:var(--radius-xl);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-lg);
+    background:var(--surface-1);
   }
-  .terminal-input{display:flex;align-items:center;gap:16px;text-align:left;padding:14px 2px;}
-  .terminal-input .material-symbols-outlined{color:var(--primary);font-size:1.7rem;}
-  #query{flex:1;border:none;background:transparent;resize:none;font-family:"Manrope";font-size:1.28rem;font-weight:500;color:var(--ink);outline:none;min-height:66px;max-height:180px;line-height:1.45;}
-  #query::placeholder{color:var(--ink-soft);font-weight:400;}
-  .terminal-controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:14px;}
-  .terminal-controls .left{display:flex;align-items:center;gap:4px;color:var(--ink-soft);}
-  .filters-live{display:flex;align-items:center;gap:6px;font-family:"JetBrains Mono";font-size:.72rem;color:var(--ink-soft);padding-left:8px;margin-left:4px;border-left:1px solid var(--line);}
-  .send-cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:14px 26px;border-radius:var(--radius-m);background:var(--primary);color:var(--primary-ink);border:none;font-family:"Manrope";font-weight:600;font-size:.96rem;cursor:pointer;box-shadow:var(--shadow);transition:filter .15s,transform .1s;}
-  .send-cta:hover{filter:brightness(1.12);}
-  .send-cta:active{transform:scale(.97);}
+  @media (min-width:900px){.yx-shell{grid-template-columns:400px 1fr;min-height:620px;}}
 
-  .chips-row{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:18px 2px 4px;scrollbar-width:thin;}
-  .chip-label{font-family:"JetBrains Mono";font-size:.68rem;font-weight:600;letter-spacing:.06em;color:var(--ink-soft);white-space:nowrap;margin-right:2px;}
-  .prompt-chip{white-space:nowrap;padding:9px 14px;border-radius:99px;background:var(--surface-1);border:1px solid var(--line);font-family:"Manrope";font-size:.83rem;font-weight:500;color:var(--ink);cursor:pointer;transition:border-color .15s;}
-  .prompt-chip:hover{border-color:var(--secondary);}
+  .yx-chat{display:flex;flex-direction:column;padding:22px 22px 18px;min-height:360px;}
+  .yx-brand-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .yx-brand-icon{position:relative;width:32px;height:32px;border-radius:9px;background:var(--primary);color:var(--primary-fixed);display:flex;align-items:center;justify-content:center;font-family:"Epilogue";font-weight:800;font-size:.92rem;}
+  .yx-brand-icon .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--secondary);border:2px solid var(--surface-1);}
+  .yx-restart{border:none;background:none;color:var(--ink-soft);cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+  .yx-restart:hover{background:var(--surface-2);color:var(--ink);}
 
-  .filters-ribbon{margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-radius:var(--radius-m);background:var(--surface-2);border:1px solid var(--line);}
-  .filters-ribbon .tags{display:flex;flex-wrap:wrap;gap:8px;}
-  .filter-tag{display:flex;align-items:center;gap:6px;background:var(--surface-1);border:1px solid var(--line);padding:7px 11px;border-radius:var(--radius-s);font-size:.82rem;font-weight:600;}
-  .filter-tag .k{color:var(--ink-soft);font-weight:500;}
-  .filter-tag .v{color:var(--primary);}
-  .filter-tag button{border:none;background:none;cursor:pointer;color:var(--ink-soft);display:flex;padding:0;}
-  .filter-tag button .material-symbols-outlined{font-size:1rem;}
-  .reset-all{border:none;background:none;cursor:pointer;font-family:"JetBrains Mono";font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--secondary);}
-  .reset-all:hover{text-decoration:underline;}
-  .filters-empty{font-family:"JetBrains Mono";font-size:.75rem;color:var(--ink-soft);}
+  .yx-thread{flex:1;overflow-y:auto;padding:8px 2px;max-height:520px;}
+  .yx-ai-block{margin-bottom:18px;}
+  .yx-ai-block h3{font-size:1.22rem;line-height:1.3;color:var(--ink);}
+  .yx-ai-block p.lead{display:flex;align-items:center;gap:7px;color:var(--ink-soft);font-size:.92rem;margin-top:8px;}
+  .yx-ai-block p.lead .material-symbols-outlined{font-size:1rem;color:var(--secondary);}
+  .yx-ai-block p.breakdown{font-size:.9rem;color:var(--ink-soft);margin-top:8px;line-height:1.55;}
+  .yx-question{margin-top:14px;font-size:.94rem;color:var(--ink);font-weight:600;}
+  .yx-options{margin-top:6px;display:flex;flex-direction:column;}
+  .yx-option{display:flex;align-items:center;gap:12px;padding:12px 4px;border:none;background:none;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;width:100%;font-family:"Manrope";font-size:.92rem;color:var(--ink);}
+  .yx-option:last-child{border-bottom:none;}
+  .yx-option .plus{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line-active);display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink-soft);font-size:.8rem;}
+  .yx-option:hover{color:var(--primary);}
+  .yx-option:hover .plus{border-color:var(--primary);color:var(--primary);}
+  .yx-user-line{display:flex;justify-content:flex-end;margin:10px 0;}
+  .yx-user-line span{background:var(--surface-2);border-radius:100px;padding:8px 14px;font-size:.86rem;color:var(--ink);max-width:88%;}
+  .yx-thinking{display:flex;align-items:center;gap:7px;color:var(--ink-soft);font-family:"JetBrains Mono";font-size:.78rem;margin:6px 0 18px;}
+
+  .yx-actions{display:flex;align-items:center;gap:8px;padding-top:4px;}
+  .yx-actions button{border:none;background:none;color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;padding:6px;border-radius:8px;}
+  .yx-actions button:hover{background:var(--surface-2);color:var(--ink);}
+  .yx-actions button.active{color:var(--secondary);}
+
+  .yx-composer{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+  .yx-composer input{flex:1;border:none;background:var(--surface-2);border-radius:100px;padding:12px 18px;font-family:"Manrope";font-size:.9rem;color:var(--ink);outline:none;}
+  .yx-composer input:focus{box-shadow:0 0 0 2px var(--line-active);}
+  .yx-composer .send{width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--surface-1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
+  .yx-composer .send:hover{filter:brightness(1.2);}
+
+  .yx-map{position:relative;background:var(--map-bg);overflow:hidden;min-height:360px;}
+  @media (min-width:900px){.yx-map{min-height:auto;}}
+  .yx-map svg.yx-roads{position:absolute;inset:0;width:100%;height:100%;}
+  .yx-map .park{position:absolute;border-radius:44% 56% 52% 48%/50% 44% 56% 50%;background:var(--map-park);opacity:.9;}
+  .yx-marker{position:absolute;transform:translate(-50%,-50%);background:var(--surface-1);border:1.5px solid var(--line-active);color:var(--ink);font-family:"JetBrains Mono";font-weight:700;font-size:.72rem;padding:6px 10px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);white-space:nowrap;transition:transform .15s;z-index:2;}
+  .yx-marker:hover{transform:translate(-50%,-50%) scale(1.07);}
+  .yx-marker.active{background:var(--map-pin);color:#fff;border-color:var(--map-pin);z-index:3;}
+  .yx-marker .rbadge{position:absolute;top:-9px;left:-9px;width:19px;height:19px;border-radius:50%;background:var(--map-badge);color:#fff;font-size:.6rem;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface-1);}
+  .yx-map-controls{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:4;}
+  .yx-map-controls button{width:34px;height:34px;border-radius:9px;background:var(--surface-1);border:1px solid var(--line);box-shadow:var(--shadow);color:var(--ink);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+  .yx-map-controls button:hover{background:var(--surface-2);}
+
+  .yx-card{position:absolute;top:14px;left:14px;bottom:14px;width:290px;background:var(--surface-1);border-radius:var(--radius-l);box-shadow:var(--shadow-lg);overflow:hidden;display:flex;flex-direction:column;z-index:5;}
+  @media (max-width:640px){.yx-card{position:static;width:auto;margin:14px;}}
+  .yx-card[hidden]{display:none;}
+  .yx-card-icons{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:2;}
+  .yx-card-icons .left-group{display:flex;gap:6px;}
+  .yx-icon-btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.94);border:none;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;box-shadow:var(--shadow);}
+  .yx-icon-btn .material-symbols-outlined{font-size:1.05rem;}
+  .yx-icon-btn.on{color:var(--secondary);}
+  .yx-card-photo{aspect-ratio:4/3;position:relative;flex:none;}
+  .yx-card-photo .r-media{aspect-ratio:auto;height:100%;}
+  .yx-card-body{padding:15px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:11px;}
+  .yx-card-price{display:flex;align-items:baseline;gap:6px;}
+  .yx-card-price b{font-family:"JetBrains Mono";font-weight:800;font-size:1.35rem;color:var(--ink);}
+  .yx-card-price span{font-family:"JetBrains Mono";font-size:.76rem;color:var(--ink-soft);}
+  .yx-card-title{font-size:.96rem;font-weight:700;font-family:"Epilogue";color:var(--ink);}
+  .yx-card-sub{font-size:.78rem;color:var(--ink-soft);margin-top:-6px;}
+  .yx-card-rows{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px;}
+  .yx-card-row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;gap:8px;}
+  .yx-card-row .k{color:var(--ink-soft);display:flex;align-items:center;gap:6px;}
+  .yx-card-row .k .pct{background:var(--surface-2);border-radius:6px;padding:1px 6px;font-family:"JetBrains Mono";font-size:.66rem;color:var(--ink-soft);}
+  .yx-card-row .v{font-family:"JetBrains Mono";font-weight:600;white-space:nowrap;}
+  .yx-card-row.total{border-top:1px dashed var(--line);padding-top:8px;}
+  .yx-card-row.total .v,.yx-card-row.total .k{font-weight:700;color:var(--ink);}
+  .yx-contact{background:var(--surface-2);border-radius:var(--radius-m);padding:10px 12px;display:flex;align-items:center;gap:10px;}
+  .yx-contact .avatar{width:34px;height:34px;border-radius:50%;background:var(--primary);color:var(--primary-fixed);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;font-size:.86rem;}
+  .yx-contact .info{font-size:.76rem;color:var(--ink-soft);line-height:1.5;}
+  .yx-contact .phone{font-family:"JetBrains Mono";font-weight:700;color:var(--ink);font-size:.82rem;}
+  .yx-reveal-btn{width:100%;padding:13px;border-radius:var(--radius-m);background:var(--map-yellow);color:var(--map-yellow-ink);border:none;font-family:"Manrope";font-weight:700;font-size:.88rem;cursor:pointer;}
+  .yx-reveal-btn:hover{filter:brightness(1.05);}
+  .yx-reveal-btn:disabled{cursor:default;}
+  .yx-calc-link{text-align:center;font-family:"Manrope";font-size:.8rem;color:var(--primary);font-weight:600;cursor:pointer;background:none;border:none;padding:2px;}
+  .yx-calc-link:hover{text-decoration:underline;}
+  .yx-more-chip{margin:10px 2px 0;align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:100px;padding:8px 14px;font-family:"Manrope";font-size:.8rem;color:var(--ink);cursor:pointer;}
+  .yx-more-chip:hover{border-color:var(--primary);}
 
   /* ---------- section headers ---------- */
   .section-head{display:flex;flex-direction:column;gap:14px;margin-bottom:36px;}
@@ -191,8 +264,9 @@
   #listings{background:var(--surface-1);border-block:1px solid var(--line);}
   .results-grid{display:grid;grid-template-columns:1fr;gap:28px;}
   @media (min-width:760px){.results-grid{grid-template-columns:1fr 1fr;}}
-  .r-card{border-radius:var(--radius-l);overflow:hidden;display:flex;flex-direction:column;transition:transform .25s ease, box-shadow .25s ease;}
+  .r-card{border-radius:var(--radius-l);overflow:hidden;display:flex;flex-direction:column;transition:transform .25s ease, box-shadow .25s ease, outline-color .3s ease;outline:2px solid transparent;outline-offset:3px;}
   .r-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+  .r-card.flash{outline-color:var(--secondary);}
   .r-media{position:relative;aspect-ratio:16/10;overflow:hidden;background:linear-gradient(155deg, var(--surface-2) 0%, var(--primary) 130%);}
   .r-media .horizon{position:absolute;left:0;right:0;bottom:34%;height:2px;background:linear-gradient(90deg, transparent, var(--tertiary), transparent);opacity:.7;}
   .r-media .skyline{position:absolute;left:0;right:0;bottom:34%;display:flex;align-items:flex-end;gap:3%;padding:0 6%;height:30%;opacity:.85;}
@@ -416,31 +490,46 @@
       <p class="lede">Опишите своими словами бюджет, стиль жизни, район или инвестиционную цель — RealtorAI мгновенно проанализирует каталог, цены и доходность объектов.</p>
     </div>
 
-    <div class="wrap search-col">
-      <div class="terminal-shell glass-frost">
-        <div class="terminal-input">
-          <span class="material-symbols-outlined">chat_spark</span>
-          <textarea id="query" rows="2" placeholder="Спросите RealtorAI, например: «двушка в Ваке или Вере от 65 м² с балконом, бюджет до $135 000, высокий ROI посуточно»">Квартира с видом на горы, у метро, для инвестиций, бюджет до $150 000</textarea>
-        </div>
-        <div class="terminal-controls">
-          <div class="left">
-            <button class="icon-btn" type="button" title="Прикрепить план/референс" style="width:34px;height:34px;"><span class="material-symbols-outlined" style="font-size:1.1rem;">attach_file</span></button>
-            <button class="icon-btn" type="button" title="Голосовой ввод" style="width:34px;height:34px;"><span class="material-symbols-outlined" style="font-size:1.1rem;">mic</span></button>
-            <span class="filters-live"><span class="material-symbols-outlined" style="font-size:1rem;">tune</span><span id="filters-live-count">Фильтры ИИ активны (0)</span></span>
+    <div class="wrap">
+      <div class="yx-shell">
+        <div class="yx-chat">
+          <div class="yx-brand-row">
+            <span class="yx-brand-icon">R<span class="dot"></span></span>
+            <button class="yx-restart" id="yx-restart" type="button" title="Начать заново"><span class="material-symbols-outlined">restart_alt</span></button>
           </div>
-          <button class="send-cta" id="ask-btn" type="button"><span>Найти через ИИ</span><span class="material-symbols-outlined">arrow_forward</span></button>
+          <div class="yx-thread" id="yx-thread"></div>
+          <div class="yx-actions">
+            <button type="button" id="yx-share" title="Поделиться"><span class="material-symbols-outlined">ios_share</span></button>
+            <button type="button" id="yx-like" title="Полезно"><span class="material-symbols-outlined">thumb_up</span></button>
+            <button type="button" id="yx-dislike" title="Не то"><span class="material-symbols-outlined">thumb_down</span></button>
+            <span class="toast-note" id="yx-toast"></span>
+          </div>
+          <button type="button" class="yx-more-chip" id="yx-restore-hidden" hidden>Показать <span id="yx-hidden-count">0</span> скрытых</button>
+          <div class="yx-composer">
+            <input id="yx-input" type="text" placeholder="Задайте свой вопрос" autocomplete="off">
+            <button class="send" id="yx-send" type="button" aria-label="Отправить"><span class="material-symbols-outlined">arrow_upward</span></button>
+          </div>
+        </div>
+        <div class="yx-map" id="yx-map">
+          <svg class="yx-roads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 30 Q30 20 55 32 T100 25" stroke="var(--map-road)" stroke-width="2.2" fill="none"/>
+            <path d="M0 58 Q35 50 60 60 T100 55" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+            <path d="M0 82 Q40 75 70 84 T100 80" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+            <path d="M18 0 Q26 40 20 100" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+            <path d="M52 0 Q46 45 58 100" stroke="var(--map-road)" stroke-width="2.2" fill="none"/>
+            <path d="M82 0 Q76 50 86 100" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+          </svg>
+          <div class="park" style="width:120px;height:100px;top:10%;right:8%;"></div>
+          <div class="park" style="width:90px;height:80px;bottom:14%;left:30%;"></div>
+          <div id="yx-markers"></div>
+          <div class="yx-map-controls">
+            <button type="button" id="yx-zoom-in" aria-label="Приблизить">+</button>
+            <button type="button" id="yx-zoom-out" aria-label="Отдалить">–</button>
+            <button type="button" aria-label="Моё местоположение"><span class="material-symbols-outlined" style="font-size:1.1rem;">navigation</span></button>
+          </div>
+          <div class="yx-card" id="yx-card" hidden></div>
         </div>
       </div>
-
-      <div class="chips-row" id="example-chips">
-        <span class="chip-label">БЫСТРЫЙ ВЫБОР:</span>
-        <button class="prompt-chip" type="button" data-q="Уютная студия для сдачи студентам, недорого, у метро">🏙 Студия под аренду студентам</button>
-        <button class="prompt-chip" type="button" data-q="Квартира в историческом районе Сололаки для посуточной сдачи туристам">🏰 Историческая, под Airbnb в Сололаки</button>
-        <button class="prompt-chip" type="button" data-q="Просторная квартира для семьи с детьми, тихий двор, парковка">🌿 Семейная, с парковкой</button>
-        <button class="prompt-chip" type="button" data-q="Новостройка для инвестиций с высоким ростом цены">📈 Новостройка с высоким ROI</button>
-      </div>
-
-      <div class="filters-ribbon" id="filters-ribbon"></div>
     </div>
   </section>
 
@@ -448,8 +537,8 @@
     <div class="wrap">
       <div class="section-head">
         <div>
-          <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em">psychology</span>Алгоритмический рейтинг объектов</span>
-          <h2 style="margin-top:8px;">Результаты AI-подбора по вашему запросу</h2>
+          <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em">apartment</span>Полный каталог</span>
+          <h2 style="margin-top:8px;">Все объявления RealtorAI</h2>
         </div>
         <div class="status-line" id="results-status"></div>
       </div>
@@ -779,13 +868,14 @@
         '<div class="grain"></div>' +
         '<div class="skyline">' + bars.join("") + '</div>' +
         '<div class="horizon"></div>' +
+        (opts.badgeRow === false ? '' :
         '<div class="badge-row">' +
           '<div class="badge-tags">' +
             '<span class="b-district">' + a.district.toUpperCase() + (opts.showSub !== false && a.address ? ' • ' + a.address.split(",")[0].toUpperCase() : '') + '</span>' +
             (badge ? '<span class="b-sub" style="background:'+badge.bg+';color:'+badge.ink+'">'+badge.text+'</span>' : '') +
           '</div>' +
           (opts.metric !== false ? metricBadgeHTML(a) : '') +
-        '</div>' +
+        '</div>') +
         (opts.match != null ? '<span class="match-pill"><span class="dot"></span>AI Совпадение: ' + opts.match + '%</span>' : '') +
         (a.custom ? '<span class="new-flag">Новое</span>' : '') +
         (opts.save !== false ? '<button type="button" class="save-btn' + (SAVED.indexOf(a.id)!==-1?' on':'') + '" data-save="' + a.id + '"><span class="material-symbols-outlined msi' + (SAVED.indexOf(a.id)!==-1?' on':'') + '">bookmark</span></button>' : '') +
@@ -863,49 +953,22 @@
     score += a.rating*2;
     return {score:score, why:why};
   }
-  var lastQuery = null;
-  var visibleCount = 4;
+  var catalogVisible = 6;
 
-  function runSearch(text){
-    var status = document.getElementById("results-status");
-    status.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;color:var(--secondary)">progress_activity</span> ИИ анализирует запрос…';
-    visibleCount = 4;
-
-    setTimeout(function(){
-      var q = analyzeQuery(text);
-      lastQuery = q;
-      document.getElementById("filters-live-count").textContent = "Фильтры ИИ активны (" + filterCount(q) + ")";
-      renderFiltersRibbon(q, text);
-
-      var scored = allApts().map(function(a){ var s=scoreApt(a,q); return {apt:a, score:s.score, why:s.why}; })
-        .sort(function(x,y){ return y.score-x.score; });
-      var relevant = scored.filter(function(s){ return s.score>15; });
-      var fallback = relevant.length===0;
-      var ordered = fallback ? scored : relevant;
-
-      renderResults(ordered, fallback);
-    }, 500);
-  }
-
-  function renderResults(ordered, fallback){
-    var status = document.getElementById("results-status");
+  function renderCatalogGrid(){
     var grid = document.getElementById("results-grid");
-    var total = ordered.length;
-    var shown = ordered.slice(0, visibleCount);
+    var status = document.getElementById("results-status");
+    var all = allApts().slice().sort(function(a,b){ return b.rating-a.rating; });
+    status.innerHTML = '<span>Всего объектов: <b>'+all.length+'</b></span>';
+    var shown = all.slice(0, catalogVisible);
 
-    status.innerHTML = fallback
-      ? '<span>Точных совпадений нет — популярные варианты</span>'
-      : '<span>Найдено: <b>'+total+'</b> объектов</span><span class="sep"></span><span>Сортировка: <b>Совпадение</b></span>';
-
-    grid.innerHTML = shown.map(function(s){
-      var a = s.apt;
-      var match = fallback ? Math.round(70 + a.rating*4) : Math.max(41, Math.min(99, Math.round(48 + s.score*0.55)));
+    grid.innerHTML = shown.map(function(a){
       var subtitle = (a.address ? a.address + ' • ' : '') + a.area + ' м² • ' + a.roomsLabel + (a.floor ? ' • ' + a.floor + '/' + (a.floorsTotal||a.floor) + ' этаж' : '');
       var growth3 = priceAt(a,3)/a.price - 1;
       var be = breakEvenYears(a);
       return (
-        '<article class="r-card">' +
-          mediaHTML(a, {match: match}) +
+        '<article class="r-card" data-listing-id="'+a.id+'">' +
+          mediaHTML(a, {match:null}) +
           '<div class="r-body">' +
             '<div>' +
               '<div class="price-row">' + priceRow(a.price) + '<span class="price-m2">' + fmtUSD(a.price/a.area) + ' / м²</span></div>' +
@@ -920,7 +983,7 @@
             '</div>' +
             '<div class="r-actions">' +
               '<button class="btn-cal" type="button" data-calc="'+a.id+'"><span class="material-symbols-outlined">calculate</span><span>В калькулятор</span></button>' +
-              '<button class="btn-more" type="button">Подробнее</button>' +
+              '<button class="btn-more" type="button" data-locate="'+a.id+'">На карте</button>' +
             '</div>' +
           '</div>' +
         '</article>'
@@ -928,7 +991,7 @@
     }).join("");
 
     var moreRow = document.getElementById("show-more-row");
-    var remaining = total - shown.length;
+    var remaining = all.length - shown.length;
     if (remaining > 0){
       moreRow.hidden = false;
       document.getElementById("show-more-label").textContent = "Показать ещё " + remaining + " вариант" + (remaining===1?"":remaining<5?"а":"ов");
@@ -937,66 +1000,9 @@
     }
   }
 
-  function renderFiltersRibbon(q, text){
-    var wrap = document.getElementById("filters-ribbon");
-    var tags = [];
-    if (q.district) tags.push({k:"Район", v:q.district, type:"district"});
-    if (q.budget.max) tags.push({k:"Бюджет", v:"до " + fmtUSD(q.budget.max), type:"budget"});
-    if (q.investing) tags.push({k:"Цель", v:"Инвестиция", type:"investing"});
-    if (q.shortTerm) tags.push({k:"Формат", v:"Посуточно", type:"shortTerm"});
-    if (q.features[0]) tags.push({k:"Черта", v:q.features[0], type:"feature", val:q.features[0]});
-
-    if (tags.length === 0){
-      wrap.innerHTML = '<span class="filters-empty">ИИ пока не нашёл в запросе конкретных критериев — попробуйте указать район, бюджет или цель.</span>';
-      return;
-    }
-    wrap.innerHTML =
-      '<div class="tags">' + tags.map(function(t){
-        return '<span class="filter-tag"><span class="k">'+t.k+':</span><span class="v">'+t.v+'</span><button type="button" data-remove="'+t.type+'" data-val="'+(t.val||'')+'"><span class="material-symbols-outlined">close</span></button></span>';
-      }).join("") + '</div>' +
-      '<button class="reset-all" type="button" id="reset-filters">СБРОСИТЬ ВСЁ</button>';
-
-    wrap.querySelectorAll("[data-remove]").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        var type = btn.dataset.remove;
-        var q2 = text;
-        if (type === "district" && lastQuery.district) q2 = q2.replace(new RegExp(lastQuery.district, "i"), "");
-        if (type === "budget" && lastQuery.budget.maxMatch) q2 = q2.replace(lastQuery.budget.maxMatch, "");
-        if (type === "investing") q2 = q2.replace(/инвестици[а-я]*/gi, "");
-        if (type === "shortTerm") q2 = q2.replace(/посуточн[а-я]*|airbnb/gi, "");
-        if (type === "feature") { var f = FEATURES.find(function(x){return x.tag===btn.dataset.val;}); if (f) q2 = q2.replace(f.re, ""); }
-        q2 = q2.replace(/,\s*,/g, ",").replace(/^[\s,]+|[\s,]+$/g, "");
-        document.getElementById("query").value = q2;
-        runSearch(q2);
-      });
-    });
-    var resetBtn = document.getElementById("reset-filters");
-    if (resetBtn) resetBtn.addEventListener("click", function(){
-      document.getElementById("query").value = "";
-      runSearch("");
-    });
-  }
-
-  document.getElementById("ask-btn").addEventListener("click", function(){ runSearch(document.getElementById("query").value); });
-  var queryEl = document.getElementById("query");
-  queryEl.addEventListener("keydown", function(e){ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); runSearch(this.value); } });
-  document.getElementById("example-chips").addEventListener("click", function(e){
-    var chip = e.target.closest(".prompt-chip"); if (!chip) return;
-    queryEl.value = chip.dataset.q; runSearch(chip.dataset.q);
-  });
-  document.getElementById("district-links").addEventListener("click", function(e){
-    var btn = e.target.closest("[data-district]"); if (!btn) return;
-    var text = "Квартира в районе " + btn.dataset.district;
-    queryEl.value = text; runSearch(text);
-    document.getElementById("listings").scrollIntoView({behavior:"smooth", block:"start"});
-  });
   document.getElementById("show-more-btn").addEventListener("click", function(){
-    visibleCount += 4;
-    var q = lastQuery || analyzeQuery(queryEl.value);
-    var scored = allApts().map(function(a){ var s=scoreApt(a,q); return {apt:a, score:s.score, why:s.why}; }).sort(function(x,y){ return y.score-x.score; });
-    var relevant = scored.filter(function(s){ return s.score>15; });
-    var fallback = relevant.length===0;
-    renderResults(fallback?scored:relevant, fallback);
+    catalogVisible += 6;
+    renderCatalogGrid();
   });
   document.getElementById("results-grid").addEventListener("click", function(e){
     var save = e.target.closest("[data-save]");
@@ -1008,13 +1014,324 @@
       save.classList.toggle("on");
       save.querySelector(".material-symbols-outlined").classList.toggle("on");
       document.getElementById("bookmarks-count").textContent = SAVED.length;
+      if (yx.selectedId === id) renderCard(id);
       return;
     }
     var calc = e.target.closest("[data-calc]");
     if (calc){
       selectApt(calc.dataset.calc);
       document.getElementById("calculator").scrollIntoView({behavior:"smooth", block:"start"});
+      return;
     }
+    var locate = e.target.closest("[data-locate]");
+    if (locate){
+      document.getElementById("search").scrollIntoView({behavior:"smooth", block:"start"});
+      selectListing(locate.dataset.locate);
+    }
+  });
+
+  /* ---------------- AI chat + map (Yandex.Realty-style) ---------------- */
+  var yx = { results: [], selectedId: null, hiddenIds: [], investing: null, zoom: 1 };
+  var AGENT_FEE_PCT = 0.03;
+
+  function ruPlural(n, forms){
+    var n10 = n%10, n100 = n%100;
+    if (n10===1 && n100!==11) return forms[0];
+    if (n10>=2 && n10<=4 && !(n100>=12 && n100<=14)) return forms[1];
+    return forms[2];
+  }
+  function breakdownLine(list){
+    var counts = {0:0,1:0,2:0,3:0,4:0};
+    list.forEach(function(a){ counts[a.rooms] = (counts[a.rooms]||0)+1; });
+    var words = {
+      0: ['студия','студии','студий'],
+      1: ['однушка','однушки','однушек'],
+      2: ['двушка','двушки','двушек'],
+      3: ['трёшка','трёшки','трёшек'],
+      4: ['четырёхкомнатная','четырёхкомнатные','четырёхкомнатных']
+    };
+    var parts = [];
+    [0,1,2,3,4].forEach(function(r){
+      if (counts[r]) parts.push(counts[r] + ' ' + ruPlural(counts[r], words[r]));
+    });
+    return parts.length ? ('В выдаче: ' + parts.join(', ') + '.') : '';
+  }
+  function abbrPrice(usd){ return usd>=1000 ? '$'+Math.round(usd/1000)+'k' : '$'+usd; }
+  function roomBadgeLabel(a){ return a.rooms===0 ? 'С' : String(a.rooms); }
+  function demoPhone(id){
+    var h = hashInt(id);
+    var rest = String(10000000 + (h % 90000000));
+    var s = '5' + rest;
+    return '+995 ' + s.slice(0,3) + ' ' + s.slice(3,5) + ' ' + s.slice(5,7) + ' ' + s.slice(7,9);
+  }
+  function toastQuick(msg){
+    var el = document.getElementById("yx-toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastQuick._t);
+    toastQuick._t = setTimeout(function(){ el.classList.remove("show"); }, 2200);
+  }
+
+  function threadEl(){ return document.getElementById("yx-thread"); }
+  function scrollThreadToBottom(){ var t=threadEl(); t.scrollTop = t.scrollHeight; }
+  function appendUserLine(text){
+    var div = document.createElement("div");
+    div.className = "yx-user-line";
+    var span = document.createElement("span");
+    span.textContent = text;
+    div.appendChild(span);
+    threadEl().appendChild(div);
+    scrollThreadToBottom();
+  }
+  function appendThinking(cb, delay){
+    var div = document.createElement("div");
+    div.className = "yx-thinking";
+    div.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">progress_activity</span> ИИ анализирует…';
+    threadEl().appendChild(div);
+    scrollThreadToBottom();
+    setTimeout(function(){ div.remove(); cb(); }, delay || 550);
+  }
+  function renderAiBlock(cfg){
+    var html = '<div class="yx-ai-block">';
+    if (cfg.title) html += '<h3>' + cfg.title + '</h3>';
+    if (cfg.lead) html += '<p class="lead"><span class="material-symbols-outlined">auto_awesome</span>' + cfg.lead + '</p>';
+    if (cfg.breakdown) html += '<p class="breakdown">' + cfg.breakdown + '</p>';
+    if (cfg.question){
+      html += '<p class="yx-question">' + cfg.question + '</p>';
+      html += '<div class="yx-options">' + cfg.options.map(function(o,i){
+        return '<button type="button" class="yx-option" data-opt="'+i+'"><span class="plus">+</span><span>'+o.label+'</span></button>';
+      }).join("") + '</div>';
+    }
+    html += '</div>';
+    var tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    var block = tmp.firstChild;
+    threadEl().appendChild(block);
+    if (cfg.options){
+      var btns = block.querySelectorAll("[data-opt]");
+      btns.forEach(function(btn){
+        btn.addEventListener("click", function(){
+          var opt = cfg.options[+btn.dataset.opt];
+          btns.forEach(function(b){ b.disabled = true; b.style.opacity = (b===btn ? 1 : .35); });
+          appendUserLine(opt.label);
+          opt.onSelect();
+        });
+      });
+    }
+    scrollThreadToBottom();
+    return block;
+  }
+
+  function updateHiddenChip(){
+    var el = document.getElementById("yx-restore-hidden");
+    if (yx.hiddenIds.length > 0){
+      el.hidden = false;
+      document.getElementById("yx-hidden-count").textContent = yx.hiddenIds.length;
+    } else {
+      el.hidden = true;
+    }
+  }
+
+  function renderMap(list){
+    yx.results = list;
+    var wrap = document.getElementById("yx-markers");
+    var visible = list.filter(function(a){ return yx.hiddenIds.indexOf(a.id)===-1; });
+    wrap.innerHTML = visible.map(function(a){
+      var seed = hashInt(a.id);
+      var x = 44 + (seed % 48);
+      var y = 8 + (Math.floor(seed/48) % 80);
+      return '<button type="button" class="yx-marker'+(a.id===yx.selectedId?' active':'')+'" style="left:'+x+'%;top:'+y+'%;" data-marker="'+a.id+'">' +
+        '<span class="rbadge">'+roomBadgeLabel(a)+'</span>'+abbrPrice(a.price) +
+      '</button>';
+    }).join("");
+    wrap.querySelectorAll("[data-marker]").forEach(function(btn){
+      btn.addEventListener("click", function(){ selectListing(btn.dataset.marker); });
+    });
+  }
+
+  function selectListing(id){
+    yx.selectedId = id;
+    document.querySelectorAll(".yx-marker").forEach(function(m){ m.classList.toggle("active", m.dataset.marker===id); });
+    renderCard(id);
+  }
+
+  function renderCard(id){
+    var card = document.getElementById("yx-card");
+    var a = id ? allApts().find(function(x){ return x.id===id; }) : null;
+    if (!a){ card.hidden = true; card.innerHTML = ""; return; }
+    var fee = a.price * AGENT_FEE_PCT;
+    var total = a.price + fee;
+    var saved = SAVED.indexOf(a.id) !== -1;
+    card.hidden = false;
+    card.innerHTML =
+      '<div class="yx-card-icons">' +
+        '<div class="left-group">' +
+          '<button type="button" class="yx-icon-btn" id="yx-card-open" title="Открыть в каталоге"><span class="material-symbols-outlined">open_in_new</span></button>' +
+          '<button type="button" class="yx-icon-btn" id="yx-card-hide" title="Скрыть"><span class="material-symbols-outlined">visibility_off</span></button>' +
+          '<button type="button" class="yx-icon-btn'+(saved?' on':'')+'" id="yx-card-save" title="Сохранить"><span class="material-symbols-outlined msi'+(saved?' on':'')+'">favorite</span></button>' +
+        '</div>' +
+        '<button type="button" class="yx-icon-btn" id="yx-card-close" title="Закрыть"><span class="material-symbols-outlined">close</span></button>' +
+      '</div>' +
+      '<div class="yx-card-photo">' + mediaHTML(a, {badgeRow:false, save:false}) + '</div>' +
+      '<div class="yx-card-body">' +
+        '<div>' +
+          '<div class="yx-card-price"><b>' + fmtUSD(a.price) + '</b><span>≈ ' + fmtGEL(a.price) + '</span></div>' +
+          '<div class="yx-card-sub">цена продажи · ' + fmtUSD(a.price/a.area) + '/м²</div>' +
+        '</div>' +
+        '<div><div class="yx-card-title">' + a.title + '</div><div class="yx-card-sub">' + a.district + ' · ' + a.roomsLabel + ' · ' + a.area + ' м²</div></div>' +
+        '<div class="yx-card-rows">' +
+          '<div class="yx-card-row"><span class="k">Задаток при бронировании</span><span class="v">требуется</span></div>' +
+          '<div class="yx-card-row"><span class="k">Комиссия агента<span class="pct">'+Math.round(AGENT_FEE_PCT*100)+'%</span></span><span class="v">'+fmtUSD(fee)+'</span></div>' +
+          '<div class="yx-card-row total"><span class="k">Итого к оплате</span><span class="v">'+fmtUSD(total)+' + задаток</span></div>' +
+        '</div>' +
+        '<div class="yx-contact"><span class="avatar">R</span><div class="info">Агент RealtorAI<br><span class="phone" id="yx-phone-mask">+995 5●● ●● ●● ●●</span></div></div>' +
+        '<button type="button" class="yx-reveal-btn" id="yx-reveal-btn">Показать телефон</button>' +
+        '<button type="button" class="yx-calc-link" id="yx-card-calc">Открыть в инвесткалькуляторе →</button>' +
+      '</div>';
+
+    document.getElementById("yx-card-close").addEventListener("click", function(){ card.hidden = true; });
+    document.getElementById("yx-card-hide").addEventListener("click", function(){
+      yx.hiddenIds.push(a.id);
+      renderMap(yx.results);
+      updateHiddenChip();
+      card.hidden = true;
+      toastQuick("Объект скрыт");
+    });
+    document.getElementById("yx-card-save").addEventListener("click", function(){
+      var idx = SAVED.indexOf(a.id);
+      if (idx===-1) SAVED.push(a.id); else SAVED.splice(idx,1);
+      saveSaved(SAVED);
+      document.getElementById("bookmarks-count").textContent = SAVED.length;
+      renderCard(a.id);
+      renderCatalogGrid();
+    });
+    document.getElementById("yx-card-open").addEventListener("click", function(){
+      document.getElementById("listings").scrollIntoView({behavior:"smooth", block:"start"});
+      var target = document.querySelector('[data-listing-id="'+a.id+'"]');
+      if (target){ target.classList.add("flash"); setTimeout(function(){ target.classList.remove("flash"); }, 1600); }
+    });
+    document.getElementById("yx-card-calc").addEventListener("click", function(){
+      selectApt(a.id);
+      document.getElementById("calculator").scrollIntoView({behavior:"smooth", block:"start"});
+    });
+    document.getElementById("yx-reveal-btn").addEventListener("click", function(){
+      var phone = demoPhone(a.id);
+      this.textContent = phone;
+      this.disabled = true;
+      document.getElementById("yx-phone-mask").innerHTML = phone + ' <span style="opacity:.6">(демо-номер)</span>';
+    });
+  }
+
+  function answerQ2(min, max){
+    var list = yx.results.filter(function(a){ return a.price>=min && a.price<max; });
+    if (list.length===0) list = yx.results.slice(0,4);
+    renderMap(list);
+    selectListing(list[0] ? list[0].id : null);
+    appendThinking(function(){
+      renderAiBlock({
+        title: "Вот что подобрал ИИ",
+        breakdown: list.length ? (list.length + " вариант" + (list.length===1?"":list.length<5?"а":"ов") + " отмечено на карте.") : "Под такие условия объектов не нашлось — попробуйте расширить бюджет."
+      });
+    });
+  }
+  function answerQ1(investing){
+    yx.investing = investing;
+    var list = allApts().slice();
+    if (investing===true) list.sort(function(a,b){ return b.yieldLong-a.yieldLong; });
+    else if (investing===false) list.sort(function(a,b){ return b.area-a.area; });
+    else list.sort(function(a,b){ return b.rating-a.rating; });
+    renderMap(list);
+    appendThinking(function(){
+      renderAiBlock({
+        lead: investing===true ? "Учёл: ищете для инвестиций — выше варианты с высокой доходностью." : investing===false ? "Учёл: подбираю для жизни — выше просторные варианты." : "Хорошо, ориентируюсь на рейтинг и доходность.",
+        question: "Какой бюджет рассматриваете?",
+        options: [
+          {label:"До $80 000", onSelect:function(){ answerQ2(0,80000); }},
+          {label:"$80 000 – $150 000", onSelect:function(){ answerQ2(80000,150000); }},
+          {label:"От $150 000", onSelect:function(){ answerQ2(150000,Infinity); }},
+          {label:"Пока не важно", onSelect:function(){ answerQ2(0,Infinity); }}
+        ]
+      });
+    });
+  }
+  function startConversation(){
+    threadEl().innerHTML = "";
+    yx.hiddenIds = []; yx.investing = null;
+    updateHiddenChip();
+    var all = allApts().slice().sort(function(a,b){ return b.rating-a.rating; });
+    renderAiBlock({
+      title: "Нашёл " + all.length + " объектов в Тбилиси",
+      lead: "проверенные объекты с ИИ-оценкой доходности",
+      breakdown: breakdownLine(all),
+      question: "Чтобы подобрать точнее, подскажите: вы ищете квартиру для жизни или для инвестиций?",
+      options: [
+        {label:"Для жизни", onSelect:function(){ answerQ1(false); }},
+        {label:"Для инвестиций (сдача в аренду)", onSelect:function(){ answerQ1(true); }},
+        {label:"Пока не важно", onSelect:function(){ answerQ1(null); }}
+      ]
+    });
+    renderMap(all);
+    selectListing(all[0] ? all[0].id : null);
+  }
+  function runFreeText(text){
+    text = (text||"").trim();
+    if (!text) return;
+    appendUserLine(text);
+    document.getElementById("yx-input").value = "";
+    appendThinking(function(){
+      var q = analyzeQuery(text);
+      var scored = allApts().map(function(a){ var s=scoreApt(a,q); return {apt:a, score:s.score}; }).sort(function(x,y){ return y.score-x.score; });
+      var relevant = scored.filter(function(s){ return s.score>15; });
+      var fallback = relevant.length===0;
+      var list = (fallback ? scored : relevant).map(function(s){ return s.apt; });
+      renderMap(list);
+      selectListing(list[0] ? list[0].id : null);
+      renderAiBlock({
+        title: fallback ? "Точных совпадений нет" : ("Нашёл " + list.length + " подходящих объект" + (list.length===1?"":list.length<5?"а":"ов")),
+        breakdown: fallback ? "Показываю популярные варианты по рейтингу." : breakdownLine(list)
+      });
+    }, 650);
+  }
+
+  document.getElementById("yx-send").addEventListener("click", function(){ runFreeText(document.getElementById("yx-input").value); });
+  document.getElementById("yx-input").addEventListener("keydown", function(e){ if (e.key==="Enter"){ e.preventDefault(); runFreeText(this.value); } });
+  document.getElementById("yx-restart").addEventListener("click", startConversation);
+  document.getElementById("yx-restore-hidden").addEventListener("click", function(){
+    yx.hiddenIds = [];
+    renderMap(yx.results);
+    updateHiddenChip();
+    toastQuick("Скрытые объекты возвращены");
+  });
+  document.getElementById("district-links").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-district]"); if (!btn) return;
+    var text = "Квартира в районе " + btn.dataset.district;
+    document.getElementById("yx-input").value = text;
+    runFreeText(text);
+    document.getElementById("search").scrollIntoView({behavior:"smooth", block:"start"});
+  });
+  document.getElementById("yx-share").addEventListener("click", function(){
+    var url = location.href;
+    var done = function(){ toastQuick("Ссылка скопирована"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, done);
+    else done();
+  });
+  document.getElementById("yx-like").addEventListener("click", function(){
+    this.classList.add("active");
+    document.getElementById("yx-dislike").classList.remove("active");
+    toastQuick("Спасибо за отзыв!");
+  });
+  document.getElementById("yx-dislike").addEventListener("click", function(){
+    this.classList.add("active");
+    document.getElementById("yx-like").classList.remove("active");
+    toastQuick("Учтём в следующий раз");
+  });
+  document.getElementById("yx-zoom-in").addEventListener("click", function(){
+    yx.zoom = Math.min(1.5, yx.zoom + 0.15);
+    document.getElementById("yx-markers").style.transform = "scale(" + yx.zoom + ")";
+  });
+  document.getElementById("yx-zoom-out").addEventListener("click", function(){
+    yx.zoom = Math.max(0.7, yx.zoom - 0.15);
+    document.getElementById("yx-markers").style.transform = "scale(" + yx.zoom + ")";
   });
 
   /* ---------------- currency toggle ---------------- */
@@ -1237,15 +1554,16 @@
     populateSelect();
     renderAnalytics();
     renderAdminList();
+    renderCatalogGrid();
     if (!calcState.aptId) calcState.aptId = allApts()[0].id;
     document.getElementById("c-select").value = calcState.aptId;
     recompute();
-    runSearch(queryEl.value);
   }
 
   selectApt(allApts()[0].id);
   setMode("hybrid");
   renderAll();
+  startConversation();
 })();
 </script>
 </body>
