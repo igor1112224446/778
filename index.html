@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: чат-поиск с картой (в стиле Яндекс.Недвижимости), боковая панель с историей чатов и фильтрами «Аренда», «Новостройки», «Вторичка», «Избранное», карточка объекта, инвестиционный калькулятор, аналитика районов и панель агента.">
+<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: стартовый экран с витриной объектов и поиском ChatGPT-стиля (в духе Недвижимость AI), чат-режим с картой, боковая панель с историей чатов и фильтрами «Аренда», «Новостройки», «Вторичка», «Избранное», карточка объекта, инвестиционный калькулятор, аналитика районов и панель агента.">
 <title>RealtorAI</title>
 <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@200..600,0..1&display=swap" rel="stylesheet">
@@ -314,18 +314,49 @@
   .status-line b{color:var(--primary);font-weight:700;}
   .status-line .sep{width:1px;height:12px;background:var(--line-active);}
 
-  /* ---------- listing / results grid ---------- */
-  #listings{background:var(--surface-1);border-block:1px solid var(--line);}
-  .results-grid{display:grid;grid-template-columns:1fr;gap:28px;}
-  @media (min-width:760px){.results-grid{grid-template-columns:1fr 1fr;}}
-  .r-card{border-radius:var(--radius-l);overflow:hidden;display:flex;flex-direction:column;transition:transform .25s ease, box-shadow .25s ease, outline-color .3s ease;outline:2px solid transparent;outline-offset:3px;}
-  .r-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+  /* ---------- listing / results grid (photo-forward, Недвижимость AI style) ---------- */
+  #listings{background:var(--surface-1);border-block:1px solid var(--line);position:relative;padding-bottom:120px;}
+  .results-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (min-width:640px){.results-grid{grid-template-columns:1fr 1fr 1fr;}}
+  @media (min-width:1240px){.results-grid{grid-template-columns:repeat(4,1fr);}}
+  .r-card{border-radius:var(--radius-l);cursor:pointer;transition:transform .2s ease, box-shadow .2s ease, outline-color .3s ease;outline:2px solid transparent;outline-offset:3px;}
+  .r-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
   .r-card.flash{outline-color:var(--secondary);}
-  .r-media{position:relative;aspect-ratio:16/10;overflow:hidden;background:linear-gradient(155deg, var(--surface-2) 0%, var(--primary) 130%);}
+  .r-media{position:relative;aspect-ratio:4/5;overflow:hidden;background:linear-gradient(155deg, var(--surface-2) 0%, var(--primary) 130%);border-radius:var(--radius-l);}
   .r-media .horizon{position:absolute;left:0;right:0;bottom:34%;height:2px;background:linear-gradient(90deg, transparent, var(--tertiary), transparent);opacity:.7;}
   .r-media .skyline{position:absolute;left:0;right:0;bottom:34%;display:flex;align-items:flex-end;gap:3%;padding:0 6%;height:30%;opacity:.85;}
   .r-media .skyline i{display:block;background:var(--ink);opacity:.28;border-radius:2px 2px 0 0;flex:none;}
   .r-media .grain{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.14), transparent 60%);}
+  .metric-chip{position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.92);color:var(--primary);font-family:"JetBrains Mono";font-size:.64rem;font-weight:700;padding:5px 9px;border-radius:99px;backdrop-filter:blur(6px);}
+  .metric-chip .material-symbols-outlined{font-size:.9rem;}
+  .r-mini{padding:10px 2px 0;}
+  .r-mini .price-row{gap:6px;}
+  .r-mini .price-usd{font-size:1.05rem;}
+  .r-mini .price-gel{font-size:.72rem;}
+  .r-mini .r-title{font-size:.9rem;font-weight:600;font-family:"Manrope";margin-top:1px;}
+  .r-mini .r-sub{font-size:.76rem;margin-top:1px;}
+
+  /* "люди ищут" prompt cards mixed into the grid */
+  .r-suggest{border-radius:var(--radius-l);background:var(--surface-2);border:1px solid var(--line);padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;aspect-ratio:4/5;cursor:pointer;transition:border-color .2s ease, transform .2s ease;}
+  .r-suggest:hover{border-color:var(--primary);transform:translateY(-3px);}
+  .r-suggest .tag{align-self:flex-start;display:flex;align-items:center;gap:6px;background:var(--surface-1);border-radius:99px;padding:6px 12px;font-family:"JetBrains Mono";font-size:.64rem;font-weight:700;color:var(--ink-soft);}
+  .r-suggest .avatars{display:flex;}
+  .r-suggest .avatars span{width:30px;height:30px;border-radius:50%;border:2px solid var(--surface-2);margin-left:-10px;background:var(--primary-fixed);}
+  .r-suggest .avatars span:first-child{margin-left:0;}
+  .r-suggest p{font-size:.92rem;font-weight:600;color:var(--ink);line-height:1.35;margin:0;}
+
+  /* sticky bottom composer while browsing the grid */
+  .browse-composer-wrap{position:fixed;left:0;right:0;bottom:20px;display:flex;justify-content:center;pointer-events:none;z-index:30;padding-inline:24px;}
+  .browse-composer-wrap .hero-box{pointer-events:auto;margin:0;width:100%;max-width:620px;}
+  @media (min-width:980px){.browse-composer-wrap{left:272px;}}
+  @media (min-width:980px){#listings:has(#browse-card:not([hidden])) .browse-composer-wrap{padding-right:420px;}}
+  body.chat-mode .browse-composer-wrap{display:none;}
+
+  /* floating object card over the grid (position:fixed panel, not a map) */
+  .browse-card{position:fixed;top:56px;right:40px;bottom:56px;width:380px;max-width:calc(100vw - 32px);background:var(--surface-1);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);overflow:hidden;overflow-y:auto;display:flex;flex-direction:column;z-index:80;}
+  .browse-card[hidden]{display:none;}
+  @media (max-width:760px){.browse-card{left:16px;right:16px;top:40px;bottom:40px;width:auto;}}
+
   .badge-row{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
   .badge-tags{display:flex;gap:6px;flex-wrap:wrap;}
   .b-district{background:rgba(255,255,255,.92);color:var(--primary);font-family:"JetBrains Mono";font-size:.66rem;font-weight:700;letter-spacing:.04em;padding:5px 9px;border-radius:6px;backdrop-filter:blur(6px);}
@@ -334,7 +365,7 @@
   .b-metric .material-symbols-outlined{color:var(--tertiary-fixed);font-size:1rem;}
   .match-pill{position:absolute;bottom:14px;left:14px;display:flex;align-items:center;gap:7px;background:rgba(27,59,54,.88);color:#fff;font-family:"JetBrains Mono";font-size:.72rem;padding:6px 12px;border-radius:99px;backdrop-filter:blur(6px);}
   .match-pill .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;}
-  .save-btn{position:absolute;bottom:14px;right:14px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.9);border:none;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);cursor:pointer;backdrop-filter:blur(6px);}
+  .save-btn{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.9);border:none;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);cursor:pointer;backdrop-filter:blur(6px);z-index:2;}
   .save-btn.on{color:var(--secondary);}
 
   .r-body{background:var(--surface-1);padding:22px;display:flex;flex-direction:column;gap:14px;flex:1;border:1px solid var(--line);border-top:none;border-radius:0 0 var(--radius-l) var(--radius-l);}
@@ -568,6 +599,13 @@
       <div class="results-grid" id="results-grid"></div>
       <div class="show-more-row" id="show-more-row" hidden>
         <button class="btn-outline" id="show-more-btn" type="button"><span id="show-more-label">Показать ещё варианты</span><span class="material-symbols-outlined">expand_more</span></button>
+      </div>
+    </div>
+    <div class="browse-card" id="browse-card" hidden></div>
+    <div class="browse-composer-wrap">
+      <div class="hero-box">
+        <textarea id="browse-input" rows="1" placeholder="Какую квартиру ищете?"></textarea>
+        <button class="send" id="browse-send" type="button" aria-label="Отправить"><span class="material-symbols-outlined">arrow_upward</span></button>
       </div>
     </div>
   </section>
@@ -947,9 +985,15 @@
         '</div>') +
         (opts.match != null ? '<span class="match-pill"><span class="dot"></span>AI Совпадение: ' + opts.match + '%</span>' : '') +
         (a.custom ? '<span class="new-flag">Новое</span>' : '') +
-        (opts.save !== false ? '<button type="button" class="save-btn' + (SAVED.indexOf(a.id)!==-1?' on':'') + '" data-save="' + a.id + '"><span class="material-symbols-outlined msi' + (SAVED.indexOf(a.id)!==-1?' on':'') + '">bookmark</span></button>' : '') +
+        (opts.save !== false ? '<button type="button" class="save-btn' + (SAVED.indexOf(a.id)!==-1?' on':'') + '" data-save="' + a.id + '"><span class="material-symbols-outlined msi' + (SAVED.indexOf(a.id)!==-1?' on':'') + '">favorite</span></button>' : '') +
+        (opts.chip ? '<span class="metric-chip">' + opts.chip + '</span>' : '') +
       '</div>'
     );
+  }
+  function chipHTML(a){
+    if (a.yieldLong >= 0.06) return '<span class="material-symbols-outlined">bolt</span>' + pct(a.yieldLong) + ' доходность';
+    if (a.growth >= 0.07) return '<span class="material-symbols-outlined">trending_up</span>+' + pct(priceAt(a,3)/a.price-1) + ' за 3 года';
+    return '<span class="material-symbols-outlined">timelapse</span>' + breakEvenYears(a).toFixed(1) + ' лет окуп.';
   }
   function badgeFor(a){
     if (a.tags.indexOf("посуточная аренда") !== -1) return {text:"AIRBNB PRIME", bg:"var(--secondary)", ink:"#fff"};
@@ -1067,7 +1111,8 @@
     threadEl().innerHTML = "";
     yx.hiddenIds = []; yx.investing = null; yx.rentMode = false; yx.results = [];
     updateHiddenChip();
-    renderCard(null);
+    closeCard(document.getElementById("yx-card"));
+    closeCard(document.getElementById("browse-card"));
   }
   function setCategory(cat){
     enterChatMode();
@@ -1090,6 +1135,35 @@
   }
 
   var catalogVisible = 6;
+  var SUGGEST_PROMPTS = [
+    { text:"Двушка у метро Марджанишвили, до $70 000", query:"Двушка у метро Марджанишвили до 70000" },
+    { text:"Квартира с видом на горы в Мтацминде", query:"Квартира с видом на горы в Мтацминде" },
+    { text:"Новостройка с террасой для инвестиций", query:"Новостройка с террасой для инвестиций" },
+    { text:"Семейная квартира рядом со школой в Ваке", query:"Семейная квартира рядом со школой в Ваке" }
+  ];
+  function cardHTML(a){
+    var subtitle = a.roomsLabel + ' • ' + a.area + ' м²' + (a.floor ? ' • ' + a.floor + '/' + (a.floorsTotal||a.floor) + ' этаж' : '');
+    return (
+      '<article class="r-card" data-listing-id="'+a.id+'">' +
+        mediaHTML(a, {badgeRow:false, match:null, chip:chipHTML(a)}) +
+        '<div class="r-mini">' +
+          '<div class="price-row">' + priceRow(a.price) + '</div>' +
+          '<div class="r-title">' + a.title + '</div>' +
+          '<div class="r-sub">' + a.district + ' • ' + subtitle + '</div>' +
+        '</div>' +
+      '</article>'
+    );
+  }
+  function suggestCardHTML(prompt, idx){
+    return (
+      '<div class="r-suggest" data-suggest="'+idx+'">' +
+        '<span class="tag"><span class="material-symbols-outlined" style="font-size:1em;">search</span>люди ищут</span>' +
+        '<div class="avatars"><span></span><span></span><span></span></div>' +
+        '<p>' + prompt.text + '</p>' +
+      '</div>'
+    );
+  }
+
   function renderResultsWall(){
     var all = allApts().slice().sort(function(a,b){ return b.rating-a.rating; });
     var grid = document.getElementById("results-grid");
@@ -1097,33 +1171,15 @@
     status.innerHTML = '<span>Всего объектов: <b>'+all.length+'</b></span>';
     var shown = all.slice(0, catalogVisible);
 
-    grid.innerHTML = shown.map(function(a){
-      var subtitle = (a.address ? a.address + ' • ' : '') + a.area + ' м² • ' + a.roomsLabel + (a.floor ? ' • ' + a.floor + '/' + (a.floorsTotal||a.floor) + ' этаж' : '');
-      var growth3 = priceAt(a,3)/a.price - 1;
-      var be = breakEvenYears(a);
-      return (
-        '<article class="r-card" data-listing-id="'+a.id+'">' +
-          mediaHTML(a, {match:null}) +
-          '<div class="r-body">' +
-            '<div>' +
-              '<div class="price-row">' + priceRow(a.price) + '<span class="price-m2">' + fmtUSD(a.price/a.area) + ' / м²</span></div>' +
-              '<h3 class="r-title">' + a.title + '</h3>' +
-              '<p class="r-sub">' + subtitle + '</p>' +
-            '</div>' +
-            '<div class="verdict"><span class="material-symbols-outlined">smart_toy</span><div><b>Вердикт RealtorAI:</b> ' + a.desc + '</div></div>' +
-            '<div class="metrics-ribbon">' +
-              '<div class="metric-cell"><span class="k">АРЕНДА/МЕС</span><span class="v">' + fmtUSD(monthlyLong(a)) + '</span></div>' +
-              '<div class="metric-cell"><span class="k">РОСТ 3 ГОДА</span><span class="v pos">+' + pct(growth3) + '</span></div>' +
-              '<div class="metric-cell"><span class="k">ОКУПАЕМОСТЬ</span><span class="v">' + be.toFixed(1) + ' лет</span></div>' +
-            '</div>' +
-            '<div class="r-actions">' +
-              '<button class="btn-cal" type="button" data-calc="'+a.id+'"><span class="material-symbols-outlined">calculate</span><span>В калькулятор</span></button>' +
-              '<button class="btn-more" type="button" data-open="'+a.id+'">Подробнее</button>' +
-            '</div>' +
-          '</div>' +
-        '</article>'
-      );
-    }).join("");
+    var out = [], si = 0;
+    shown.forEach(function(a, i){
+      out.push(cardHTML(a));
+      if ((i+1) % 3 === 0 && si < SUGGEST_PROMPTS.length){
+        out.push(suggestCardHTML(SUGGEST_PROMPTS[si], si));
+        si++;
+      }
+    });
+    grid.innerHTML = out.join("");
 
     var moreRow = document.getElementById("show-more-row");
     var remaining = all.length - shown.length;
@@ -1149,21 +1205,17 @@
       save.classList.toggle("on");
       save.querySelector(".material-symbols-outlined").classList.toggle("on");
       updateFavCount();
-      if (yx.selectedId === id) renderCard(id);
+      if (document.getElementById("browse-card").dataset.aptId === id) renderCardInto(document.getElementById("browse-card"), id);
       return;
     }
-    var calc = e.target.closest("[data-calc]");
-    if (calc){
-      selectApt(calc.dataset.calc);
-      switchView("calculator");
+    var suggest = e.target.closest("[data-suggest]");
+    if (suggest){
+      var prompt = SUGGEST_PROMPTS[+suggest.dataset.suggest];
+      if (prompt) runFreeText(prompt.query);
       return;
     }
-    var open = e.target.closest("[data-open]");
-    if (open){
-      var openId = open.dataset.open;
-      startConversation();
-      selectListing(openId);
-    }
+    var card = e.target.closest("[data-listing-id]");
+    if (card){ openBrowseCard(card.dataset.listingId); }
   });
 
   /* ---------------- AI chat + map (Yandex.Realty-style) ---------------- */
@@ -1288,13 +1340,12 @@
   function selectListing(id){
     yx.selectedId = id;
     document.querySelectorAll(".yx-marker").forEach(function(m){ m.classList.toggle("active", m.dataset.marker===id); });
-    renderCard(id);
+    renderCardInto(document.getElementById("yx-card"), id);
   }
+  function openBrowseCard(id){ renderCardInto(document.getElementById("browse-card"), id); }
+  function closeCard(container){ container.classList.remove("open"); container.hidden = true; }
 
-  function renderCard(id){
-    var card = document.getElementById("yx-card");
-    var a = id ? allApts().find(function(x){ return x.id===id; }) : null;
-    if (!a){ card.hidden = true; card.innerHTML = ""; return; }
+  function cardBodyHTML(a){
     var rentMode = !!yx.rentMode;
     var saved = SAVED.indexOf(a.id) !== -1;
     var priceHTML, rowsHTML;
@@ -1318,63 +1369,86 @@
         '<div class="yx-card-row"><span class="k">Комиссия агента<span class="pct">'+Math.round(AGENT_FEE_PCT*100)+'%</span></span><span class="v">'+fmtUSD(fee)+'</span></div>' +
         '<div class="yx-card-row total"><span class="k">Итого к оплате</span><span class="v">'+fmtUSD(total)+' + задаток</span></div>';
     }
-    card.hidden = false;
-    card.innerHTML =
+    return (
       '<div class="yx-card-icons">' +
         '<div class="left-group">' +
-          '<button type="button" class="yx-icon-btn" id="yx-card-open" title="Открыть в каталоге"><span class="material-symbols-outlined">open_in_new</span></button>' +
-          '<button type="button" class="yx-icon-btn" id="yx-card-hide" title="Скрыть"><span class="material-symbols-outlined">visibility_off</span></button>' +
-          '<button type="button" class="yx-icon-btn'+(saved?' on':'')+'" id="yx-card-save" title="Сохранить"><span class="material-symbols-outlined msi'+(saved?' on':'')+'">favorite</span></button>' +
+          '<button type="button" class="yx-icon-btn" data-act="open" title="Открыть в каталоге"><span class="material-symbols-outlined">open_in_new</span></button>' +
+          '<button type="button" class="yx-icon-btn" data-act="hide" title="Скрыть"><span class="material-symbols-outlined">visibility_off</span></button>' +
+          '<button type="button" class="yx-icon-btn'+(saved?' on':'')+'" data-act="save" title="Сохранить"><span class="material-symbols-outlined msi'+(saved?' on':'')+'">favorite</span></button>' +
         '</div>' +
-        '<button type="button" class="yx-icon-btn" id="yx-card-close" title="Закрыть"><span class="material-symbols-outlined">close</span></button>' +
+        '<button type="button" class="yx-icon-btn" data-act="close" title="Закрыть"><span class="material-symbols-outlined">close</span></button>' +
       '</div>' +
       '<div class="yx-card-photo">' + mediaHTML(a, {badgeRow:false, save:false}) + '</div>' +
       '<div class="yx-card-body">' +
         '<div>' + priceHTML + '</div>' +
         '<div><div class="yx-card-title">' + a.title + '</div><div class="yx-card-sub">' + a.district + ' · ' + a.roomsLabel + ' · ' + a.area + ' м²</div></div>' +
         '<div class="yx-card-rows">' + rowsHTML + '</div>' +
-        '<div class="yx-contact"><span class="avatar">R</span><div class="info">Агент RealtorAI<br><span class="phone" id="yx-phone-mask">+995 5●● ●● ●● ●●</span></div></div>' +
-        '<button type="button" class="yx-reveal-btn" id="yx-reveal-btn">Показать телефон</button>' +
-        '<button type="button" class="yx-calc-link" id="yx-card-calc">Открыть в инвесткалькуляторе →</button>' +
-      '</div>';
+        '<div class="yx-contact"><span class="avatar">R</span><div class="info">Агент RealtorAI<br><span class="phone" data-phone-mask>+995 5●● ●● ●● ●●</span></div></div>' +
+        '<button type="button" class="yx-reveal-btn" data-act="reveal">Показать телефон</button>' +
+        '<button type="button" class="yx-calc-link" data-act="calc">Открыть в инвесткалькуляторе →</button>' +
+      '</div>'
+    );
+  }
 
-    document.getElementById("yx-card-close").addEventListener("click", function(){ card.hidden = true; });
-    document.getElementById("yx-card-hide").addEventListener("click", function(){
-      yx.hiddenIds.push(a.id);
-      renderMap(yx.results);
-      updateHiddenChip();
-      card.hidden = true;
-      toastQuick("Объект скрыт");
-    });
-    document.getElementById("yx-card-save").addEventListener("click", function(){
-      var idx = SAVED.indexOf(a.id);
-      if (idx===-1) SAVED.push(a.id); else SAVED.splice(idx,1);
-      saveSaved(SAVED);
-      updateFavCount();
-      renderCard(a.id);
-      if (state.category==="favorites"){ yx.results = categoryList("favorites"); renderMap(yx.results); }
-    });
-    document.getElementById("yx-card-open").addEventListener("click", function(){
-      var targetId = a.id;
-      exitChatMode();
-      switchView("chat");
-      renderResultsWall();
-      document.getElementById("results-grid").scrollIntoView({behavior:"smooth", block:"start"});
-      var target = document.querySelector('[data-listing-id="'+targetId+'"]');
-      if (target){ target.classList.add("flash"); setTimeout(function(){ target.classList.remove("flash"); }, 1600); }
-    });
-    document.getElementById("yx-card-calc").addEventListener("click", function(){
-      selectApt(a.id);
-      card.hidden = true;
-      switchView("calculator");
-    });
-    document.getElementById("yx-reveal-btn").addEventListener("click", function(){
-      var phone = demoPhone(a.id);
-      this.textContent = phone;
-      this.disabled = true;
-      document.getElementById("yx-phone-mask").innerHTML = phone + ' <span style="opacity:.6">(демо-номер)</span>';
+  function renderCardInto(container, id){
+    var a = id ? allApts().find(function(x){ return x.id===id; }) : null;
+    if (!a){ container.dataset.aptId = ""; container.innerHTML = ""; closeCard(container); return; }
+    container.dataset.aptId = a.id;
+    container.hidden = false;
+    container.classList.add("open");
+    container.innerHTML = cardBodyHTML(a);
+  }
+
+  function bindCardActions(container){
+    container.addEventListener("click", function(e){
+      var btn = e.target.closest("[data-act]"); if (!btn) return;
+      var id = container.dataset.aptId;
+      var a = allApts().find(function(x){ return x.id===id; });
+      if (!a) return;
+      var act = btn.dataset.act;
+      if (act==="close"){ closeCard(container); }
+      else if (act==="hide"){
+        yx.hiddenIds.push(a.id);
+        if (state.chatMode) renderMap(yx.results);
+        updateHiddenChip();
+        closeCard(container);
+        toastQuick("Объект скрыт");
+      }
+      else if (act==="save"){
+        var idx = SAVED.indexOf(a.id);
+        if (idx===-1) SAVED.push(a.id); else SAVED.splice(idx,1);
+        saveSaved(SAVED);
+        updateFavCount();
+        renderCardInto(container, a.id);
+        if (state.chatMode && state.category==="favorites"){ yx.results = categoryList("favorites"); renderMap(yx.results); }
+        if (!state.chatMode) renderResultsWall();
+      }
+      else if (act==="open"){
+        var targetId = a.id;
+        if (state.chatMode) exitChatMode();
+        closeCard(container);
+        switchView("chat");
+        renderResultsWall();
+        document.getElementById("results-grid").scrollIntoView({behavior:"smooth", block:"start"});
+        var target = document.querySelector('[data-listing-id="'+targetId+'"]');
+        if (target){ target.classList.add("flash"); setTimeout(function(){ target.classList.remove("flash"); }, 1600); }
+      }
+      else if (act==="calc"){
+        selectApt(a.id);
+        closeCard(container);
+        switchView("calculator");
+      }
+      else if (act==="reveal"){
+        var phone = demoPhone(a.id);
+        btn.textContent = phone;
+        btn.disabled = true;
+        var mask = container.querySelector("[data-phone-mask]");
+        if (mask) mask.innerHTML = phone + ' <span style="opacity:.6">(демо-номер)</span>';
+      }
     });
   }
+  bindCardActions(document.getElementById("yx-card"));
+  bindCardActions(document.getElementById("browse-card"));
 
   function answerQ2(min, max){
     var list = yx.results.filter(function(a){ return a.price>=min && a.price<max; });
@@ -1440,6 +1514,7 @@
     appendUserLine(text);
     document.getElementById("yx-input").value = "";
     document.getElementById("hero-input").value = "";
+    document.getElementById("browse-input").value = "";
     appendThinking(function(){
       var q = analyzeQuery(text);
       var scored = allApts().map(function(a){ var s=scoreApt(a,q); return {apt:a, score:s.score}; }).sort(function(x,y){ return y.score-x.score; });
@@ -1459,6 +1534,8 @@
   document.getElementById("yx-input").addEventListener("keydown", function(e){ if (e.key==="Enter"){ e.preventDefault(); runFreeText(this.value); } });
   document.getElementById("hero-send").addEventListener("click", function(){ runFreeText(document.getElementById("hero-input").value); });
   document.getElementById("hero-input").addEventListener("keydown", function(e){ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); runFreeText(this.value); } });
+  document.getElementById("browse-send").addEventListener("click", function(){ runFreeText(document.getElementById("browse-input").value); });
+  document.getElementById("browse-input").addEventListener("keydown", function(e){ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); runFreeText(this.value); } });
   document.getElementById("hero-chip-guided").addEventListener("click", startConversation);
   document.getElementById("hero-chip-sample").addEventListener("click", function(){ runFreeText(this.textContent); });
   document.getElementById("yx-restart").addEventListener("click", startConversation);
@@ -1527,7 +1604,9 @@
   document.getElementById("sb-newchat").addEventListener("click", function(){
     switchView("chat");
     exitChatMode();
+    closeCard(document.getElementById("browse-card"));
     document.getElementById("hero-input").value = "";
+    document.getElementById("browse-input").value = "";
     window.scrollTo(0,0);
     closeSidebarMobile();
   });
