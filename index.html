@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: чат-поиск и каталог в стиле Claude/ChatGPT с боковой панелью (история чатов, фильтры «Аренда», «Новостройки», «Вторичка», «Избранное»), карточка объекта, инвестиционный калькулятор, аналитика районов и панель агента.">
+<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: чат-поиск с картой (в стиле Яндекс.Недвижимости), боковая панель с историей чатов и фильтрами «Аренда», «Новостройки», «Вторичка», «Избранное», карточка объекта, инвестиционный калькулятор, аналитика районов и панель агента.">
 <title>RealtorAI</title>
 <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@200..600,0..1&display=swap" rel="stylesheet">
@@ -197,23 +197,33 @@
   .blob-a{width:360px;height:360px;top:-120px;right:14%;background:var(--primary-fixed);}
   .blob-b{width:280px;height:280px;top:220px;left:4%;background:var(--secondary-fixed);}
   .hero-inner{max-width:700px;margin:0 auto;text-align:center;}
-  h1.headline{font-size:clamp(2.15rem,4.6vw,3.4rem);margin-top:20px;color:var(--primary);transition:font-size .2s ease;}
+  h1.headline{font-size:clamp(2.15rem,4.6vw,3.4rem);margin-top:20px;color:var(--primary);}
   h1.headline em{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:var(--secondary);font-weight:600;}
   .lede{font-size:1.1rem;color:var(--ink-soft);max-width:56ch;margin:16px auto 0;}
-  body.chat-active .hero{padding-top:28px;}
-  body.chat-active .hero-inner .eyebrow{display:none;}
-  body.chat-active .hero-inner .lede{display:none;}
-  body.chat-active h1.headline{font-size:clamp(1.3rem,2.2vw,1.6rem);margin-top:0;}
-  body.chat-active .hero-decor{opacity:.4;}
 
-  /* ---------- AI chat (Claude/ChatGPT-style composer) ---------- */
+  /* ---------- hero search box (ChatGPT-style, "hello" empty state) ---------- */
+  .hero-box{max-width:720px;margin:34px auto 0;position:relative;}
+  .hero-box textarea{width:100%;resize:none;border:none;background:var(--surface-2);border-radius:28px;padding:22px 64px 22px 26px;font-family:"Manrope";font-size:1.02rem;color:var(--ink);outline:none;box-shadow:var(--shadow-lg);min-height:64px;line-height:1.4;}
+  .hero-box textarea:focus{box-shadow:var(--shadow-lg), 0 0 0 2px var(--line-active);}
+  .hero-box .send{position:absolute;right:14px;bottom:14px;width:42px;height:42px;border-radius:50%;background:var(--ink);color:var(--surface-1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
+  .hero-box .send:hover{filter:brightness(1.2);}
+  .hero-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:16px auto 0;max-width:720px;}
+  .hero-chips button{background:var(--surface-1);border:1px solid var(--line-active);border-radius:100px;padding:9px 16px;font-family:"Manrope";font-size:.84rem;font-weight:600;color:var(--ink);cursor:pointer;}
+  .hero-chips button:hover{border-color:var(--primary);color:var(--primary);}
+
+  /* ---------- AI chat + map (chat state, Yandex.Недвижимость-style) ---------- */
+  #chat-stage{display:none;padding-block:clamp(20px,4vw,44px);}
+  body.chat-mode #hero-browse, body.chat-mode #listings{display:none;}
+  body.chat-mode #chat-stage{display:block;}
+
   .yx-shell{
-    max-width:820px;margin:40px auto 0;
+    max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr;
     border-radius:var(--radius-xl);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-lg);
     background:var(--surface-1);
   }
+  @media (min-width:900px){.yx-shell{grid-template-columns:400px 1fr;min-height:620px;}}
 
-  .yx-chat{display:flex;flex-direction:column;padding:22px 22px 18px;min-height:280px;}
+  .yx-chat{display:flex;flex-direction:column;padding:22px 22px 18px;min-height:360px;}
   .yx-brand-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
   .yx-brand-icon{position:relative;width:32px;height:32px;border-radius:9px;background:var(--primary);color:var(--primary-fixed);display:flex;align-items:center;justify-content:center;font-family:"Epilogue";font-weight:800;font-size:.92rem;}
   .yx-brand-icon .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--secondary);border:2px solid var(--surface-1);}
@@ -248,11 +258,21 @@
   .yx-composer .send{width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--surface-1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
   .yx-composer .send:hover{filter:brightness(1.2);}
 
-  /* ---------- object detail drawer (slides in from the right) ---------- */
-  .drawer-backdrop{display:none;position:fixed;inset:0;background:rgba(15,20,18,.35);z-index:85;}
-  .drawer-backdrop.show{display:block;}
-  .yx-card{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:92vw;background:var(--surface-1);border-left:1px solid var(--line);box-shadow:var(--shadow-lg);overflow-y:auto;display:flex;flex-direction:column;z-index:90;transform:translateX(100%);transition:transform .3s ease;}
-  .yx-card.open{transform:translateX(0);}
+  .yx-map{position:relative;background:var(--map-bg);overflow:hidden;min-height:360px;}
+  @media (min-width:900px){.yx-map{min-height:auto;}}
+  .yx-map svg.yx-roads{position:absolute;inset:0;width:100%;height:100%;}
+  .yx-map .park{position:absolute;border-radius:44% 56% 52% 48%/50% 44% 56% 50%;background:var(--map-park);opacity:.9;}
+  .yx-marker{position:absolute;transform:translate(-50%,-50%);background:var(--surface-1);border:1.5px solid var(--line-active);color:var(--ink);font-family:"JetBrains Mono";font-weight:700;font-size:.72rem;padding:6px 10px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);white-space:nowrap;transition:transform .15s;z-index:2;}
+  .yx-marker:hover{transform:translate(-50%,-50%) scale(1.07);}
+  .yx-marker.active{background:var(--map-pin);color:#fff;border-color:var(--map-pin);z-index:3;}
+  .yx-marker .rbadge{position:absolute;top:-9px;left:-9px;width:19px;height:19px;border-radius:50%;background:var(--map-badge);color:#fff;font-size:.6rem;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface-1);}
+  .yx-map-controls{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:4;}
+  .yx-map-controls button{width:34px;height:34px;border-radius:9px;background:var(--surface-1);border:1px solid var(--line);box-shadow:var(--shadow);color:var(--ink);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+  .yx-map-controls button:hover{background:var(--surface-2);}
+
+  .yx-card{position:absolute;top:14px;left:14px;bottom:14px;width:290px;background:var(--surface-1);border-radius:var(--radius-l);box-shadow:var(--shadow-lg);overflow:hidden;display:flex;flex-direction:column;z-index:5;}
+  @media (max-width:640px){.yx-card{position:static;width:auto;margin:14px;}}
+  .yx-card[hidden]{display:none;}
   .yx-card-icons{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:2;}
   .yx-card-icons .left-group{display:flex;gap:6px;}
   .yx-icon-btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.94);border:none;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;box-shadow:var(--shadow);}
@@ -517,14 +537,42 @@
 </div>
 
 <div class="view active" id="view-chat">
-  <section class="hero" id="search">
+  <section class="hero" id="hero-browse">
     <div class="hero-decor"><div class="dot-field"></div><div class="blob blob-a"></div><div class="blob blob-b"></div></div>
     <div class="wrap hero-inner">
       <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em;color:var(--secondary)">auto_awesome</span>Первый алгоритмический риэлтор Тбилиси</span>
-      <h1 class="headline">Найдите идеальную недвижимость в Тбилиси <em>силой интеллекта</em></h1>
+      <h1 class="headline">Подберу вам квартиру в Тбилиси <em>из всего каталога</em></h1>
       <p class="lede">Опишите своими словами бюджет, стиль жизни, район или инвестиционную цель — RealtorAI мгновенно проанализирует каталог, цены и доходность объектов.</p>
     </div>
+    <div class="wrap">
+      <div class="hero-box">
+        <textarea id="hero-input" rows="1" placeholder="Хочу двушку в Ваке до $100 000, для сдачи в аренду"></textarea>
+        <button class="send" id="hero-send" type="button" aria-label="Отправить"><span class="material-symbols-outlined">arrow_upward</span></button>
+      </div>
+      <div class="hero-chips">
+        <button type="button" id="hero-chip-guided">Подобрать по анкете</button>
+        <button type="button" id="hero-chip-sample">Новостройка с террасой у парка</button>
+      </div>
+    </div>
+  </section>
 
+  <section class="band" id="listings">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em">apartment</span>Подборка RealtorAI</span>
+          <h2 style="margin-top:8px;" id="results-title">Все объекты в Тбилиси</h2>
+        </div>
+        <div class="status-line" id="results-status"></div>
+      </div>
+      <div class="results-grid" id="results-grid"></div>
+      <div class="show-more-row" id="show-more-row" hidden>
+        <button class="btn-outline" id="show-more-btn" type="button"><span id="show-more-label">Показать ещё варианты</span><span class="material-symbols-outlined">expand_more</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="chat-stage">
     <div class="wrap">
       <div class="yx-shell">
         <div class="yx-chat">
@@ -545,22 +593,25 @@
             <button class="send" id="yx-send" type="button" aria-label="Отправить"><span class="material-symbols-outlined">arrow_upward</span></button>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="band" id="listings">
-    <div class="wrap">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em">apartment</span>Подборка RealtorAI</span>
-          <h2 style="margin-top:8px;" id="results-title">Все объекты в Тбилиси</h2>
+        <div class="yx-map" id="yx-map">
+          <svg class="yx-roads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 30 Q30 20 55 32 T100 25" stroke="var(--map-road)" stroke-width="2.2" fill="none"/>
+            <path d="M0 58 Q35 50 60 60 T100 55" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+            <path d="M0 82 Q40 75 70 84 T100 80" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+            <path d="M18 0 Q26 40 20 100" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+            <path d="M52 0 Q46 45 58 100" stroke="var(--map-road)" stroke-width="2.2" fill="none"/>
+            <path d="M82 0 Q76 50 86 100" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+          </svg>
+          <div class="park" style="width:120px;height:100px;top:10%;right:8%;"></div>
+          <div class="park" style="width:90px;height:80px;bottom:14%;left:30%;"></div>
+          <div id="yx-markers"></div>
+          <div class="yx-map-controls">
+            <button type="button" id="yx-zoom-in" aria-label="Приблизить">+</button>
+            <button type="button" id="yx-zoom-out" aria-label="Отдалить">–</button>
+            <button type="button" aria-label="Моё местоположение"><span class="material-symbols-outlined" style="font-size:1.1rem;">navigation</span></button>
+          </div>
+          <div class="yx-card" id="yx-card" hidden></div>
         </div>
-        <div class="status-line" id="results-status"></div>
-      </div>
-      <div class="results-grid" id="results-grid"></div>
-      <div class="show-more-row" id="show-more-row" hidden>
-        <button class="btn-outline" id="show-more-btn" type="button"><span id="show-more-label">Показать ещё варианты</span><span class="material-symbols-outlined">expand_more</span></button>
       </div>
     </div>
   </section>
@@ -794,9 +845,6 @@
   </div>
 </footer>
 </div>
-
-<div class="drawer-backdrop" id="drawer-backdrop"></div>
-<div class="yx-card" id="yx-card"></div>
 </div>
 
 <script>
@@ -974,9 +1022,6 @@
     score += a.rating*2;
     return {score:score, why:why};
   }
-  var catalogVisible = 6;
-  var currentList = [];
-
   /* ---------------- category filters (sidebar nav) ---------------- */
   var CATS = {
     rent:      { label:"Аренда в Тбилиси",        note:"Показана расчётная аренда в месяц (долгосрочный контракт)." },
@@ -984,7 +1029,7 @@
     resale:    { label:"Вторичный рынок Тбилиси", note:"Объекты вне новостроек — вторичное жильё." },
     favorites: { label:"Избранное",               note:"Объекты, сохранённые вами через значок закладки." }
   };
-  var state = { category:null };
+  var state = { category:null, chatMode:false };
 
   function isNewBuild(a){ return a.tags.indexOf("новостройка") !== -1; }
   function categoryList(cat){
@@ -1010,49 +1055,58 @@
   function clearHistoryActive(){
     document.querySelectorAll(".sb-hist-item").forEach(function(b){ b.classList.remove("active"); });
   }
+  function enterChatMode(){
+    state.chatMode = true;
+    document.body.classList.add("chat-mode");
+  }
+  function exitChatMode(){
+    state.chatMode = false;
+    document.body.classList.remove("chat-mode");
+    clearCategoryActive();
+    clearHistoryActive();
+    threadEl().innerHTML = "";
+    yx.hiddenIds = []; yx.investing = null; yx.rentMode = false; yx.results = [];
+    updateHiddenChip();
+    renderCard(null);
+  }
   function setCategory(cat){
+    enterChatMode();
     state.category = cat;
     yx.rentMode = (cat==="rent");
-    document.body.classList.add("chat-active");
     document.querySelectorAll(".sb-nav button[data-cat]").forEach(function(b){ b.classList.toggle("active", b.dataset.cat===cat); });
-    document.querySelectorAll(".sb-hist-item").forEach(function(b){ b.classList.remove("active"); });
-    closeDrawer();
+    clearHistoryActive();
     var cfg = CATS[cat];
     var list = categoryList(cat);
-    catalogVisible = 6;
     threadEl().innerHTML = "";
     yx.hiddenIds = [];
     updateHiddenChip();
-    document.getElementById("results-title").textContent = cfg.label;
     renderAiBlock({
       title: cfg.label,
       breakdown: (list.length ? list.length + " объект" + (list.length===1?"":list.length<5?"а":"ов") + " по этому фильтру." : "Пока нет объектов по этому фильтру.") + " " + cfg.note
     });
-    renderResultsWall(list);
+    yx.results = list;
+    renderMap(list);
+    selectListing(list[0] ? list[0].id : null);
   }
 
-  function renderResultsWall(list){
-    currentList = list;
+  var catalogVisible = 6;
+  function renderResultsWall(){
+    var all = allApts().slice().sort(function(a,b){ return b.rating-a.rating; });
     var grid = document.getElementById("results-grid");
     var status = document.getElementById("results-status");
-    var rentMode = !!yx.rentMode;
-    var visible = list.filter(function(a){ return yx.hiddenIds.indexOf(a.id)===-1; });
-    status.innerHTML = '<span>Найдено объектов: <b>'+visible.length+'</b></span>';
-    var shown = visible.slice(0, catalogVisible);
+    status.innerHTML = '<span>Всего объектов: <b>'+all.length+'</b></span>';
+    var shown = all.slice(0, catalogVisible);
 
     grid.innerHTML = shown.map(function(a){
       var subtitle = (a.address ? a.address + ' • ' : '') + a.area + ' м² • ' + a.roomsLabel + (a.floor ? ' • ' + a.floor + '/' + (a.floorsTotal||a.floor) + ' этаж' : '');
       var growth3 = priceAt(a,3)/a.price - 1;
       var be = breakEvenYears(a);
-      var priceBlock = rentMode
-        ? '<div class="price-row"><span class="price-main"><span class="price-usd">'+fmtUSD(monthlyLong(a))+'/мес</span><span class="price-gel">≈ '+fmtGEL(monthlyLong(a))+'/мес</span></span></div>'
-        : '<div class="price-row">' + priceRow(a.price) + '<span class="price-m2">' + fmtUSD(a.price/a.area) + ' / м²</span></div>';
       return (
         '<article class="r-card" data-listing-id="'+a.id+'">' +
           mediaHTML(a, {match:null}) +
           '<div class="r-body">' +
             '<div>' +
-              priceBlock +
+              '<div class="price-row">' + priceRow(a.price) + '<span class="price-m2">' + fmtUSD(a.price/a.area) + ' / м²</span></div>' +
               '<h3 class="r-title">' + a.title + '</h3>' +
               '<p class="r-sub">' + subtitle + '</p>' +
             '</div>' +
@@ -1072,7 +1126,7 @@
     }).join("");
 
     var moreRow = document.getElementById("show-more-row");
-    var remaining = visible.length - shown.length;
+    var remaining = all.length - shown.length;
     if (remaining > 0){
       moreRow.hidden = false;
       document.getElementById("show-more-label").textContent = "Показать ещё " + remaining + " вариант" + (remaining===1?"":remaining<5?"а":"ов");
@@ -1083,7 +1137,7 @@
 
   document.getElementById("show-more-btn").addEventListener("click", function(){
     catalogVisible += 6;
-    renderResultsWall(currentList);
+    renderResultsWall();
   });
   document.getElementById("results-grid").addEventListener("click", function(e){
     var save = e.target.closest("[data-save]");
@@ -1095,7 +1149,6 @@
       save.classList.toggle("on");
       save.querySelector(".material-symbols-outlined").classList.toggle("on");
       updateFavCount();
-      if (state.category==="favorites") renderResultsWall(categoryList("favorites"));
       if (yx.selectedId === id) renderCard(id);
       return;
     }
@@ -1107,13 +1160,14 @@
     }
     var open = e.target.closest("[data-open]");
     if (open){
-      selectListing(open.dataset.open);
-      openDrawer();
+      var openId = open.dataset.open;
+      startConversation();
+      selectListing(openId);
     }
   });
 
   /* ---------------- AI chat + map (Yandex.Realty-style) ---------------- */
-  var yx = { results: [], selectedId: null, hiddenIds: [], investing: null, rentMode: false };
+  var yx = { results: [], selectedId: null, hiddenIds: [], investing: null, rentMode: false, zoom: 1 };
   var AGENT_FEE_PCT = 0.03;
 
   function ruPlural(n, forms){
@@ -1214,27 +1268,57 @@
     }
   }
 
-  function openDrawer(){
-    document.getElementById("yx-card").classList.add("open");
-    document.getElementById("drawer-backdrop").classList.add("show");
-  }
-  function closeDrawer(){
-    document.getElementById("yx-card").classList.remove("open");
-    document.getElementById("drawer-backdrop").classList.remove("show");
+  function renderMap(list){
+    yx.results = list;
+    var wrap = document.getElementById("yx-markers");
+    var visible = list.filter(function(a){ return yx.hiddenIds.indexOf(a.id)===-1; });
+    wrap.innerHTML = visible.map(function(a){
+      var seed = hashInt(a.id);
+      var x = 44 + (seed % 48);
+      var y = 8 + (Math.floor(seed/48) % 80);
+      return '<button type="button" class="yx-marker'+(a.id===yx.selectedId?' active':'')+'" style="left:'+x+'%;top:'+y+'%;" data-marker="'+a.id+'">' +
+        '<span class="rbadge">'+roomBadgeLabel(a)+'</span>'+abbrPrice(yx.rentMode ? monthlyLong(a) : a.price) +
+      '</button>';
+    }).join("");
+    wrap.querySelectorAll("[data-marker]").forEach(function(btn){
+      btn.addEventListener("click", function(){ selectListing(btn.dataset.marker); });
+    });
   }
 
   function selectListing(id){
     yx.selectedId = id;
+    document.querySelectorAll(".yx-marker").forEach(function(m){ m.classList.toggle("active", m.dataset.marker===id); });
     renderCard(id);
   }
 
   function renderCard(id){
     var card = document.getElementById("yx-card");
     var a = id ? allApts().find(function(x){ return x.id===id; }) : null;
-    if (!a){ closeDrawer(); card.innerHTML = ""; return; }
-    var fee = a.price * AGENT_FEE_PCT;
-    var total = a.price + fee;
+    if (!a){ card.hidden = true; card.innerHTML = ""; return; }
+    var rentMode = !!yx.rentMode;
     var saved = SAVED.indexOf(a.id) !== -1;
+    var priceHTML, rowsHTML;
+    if (rentMode){
+      var rent = monthlyLong(a);
+      var deposit = rent, agentFeeRent = rent*0.5, firstPayment = rent+deposit+agentFeeRent;
+      priceHTML =
+        '<div class="yx-card-price"><b>' + fmtUSD(rent) + '/мес</b><span>≈ ' + fmtGEL(rent) + '/мес</span></div>' +
+        '<div class="yx-card-sub">расчётная аренда · долгосрочный контракт</div>';
+      rowsHTML =
+        '<div class="yx-card-row"><span class="k">Залог (1 месяц)</span><span class="v">'+fmtUSD(deposit)+'</span></div>' +
+        '<div class="yx-card-row"><span class="k">Комиссия агента<span class="pct">50%</span></span><span class="v">'+fmtUSD(agentFeeRent)+'</span></div>' +
+        '<div class="yx-card-row total"><span class="k">Первый платёж</span><span class="v">'+fmtUSD(firstPayment)+'</span></div>';
+    } else {
+      var fee = a.price * AGENT_FEE_PCT, total = a.price + fee;
+      priceHTML =
+        '<div class="yx-card-price"><b>' + fmtUSD(a.price) + '</b><span>≈ ' + fmtGEL(a.price) + '</span></div>' +
+        '<div class="yx-card-sub">цена продажи · ' + fmtUSD(a.price/a.area) + '/м²</div>';
+      rowsHTML =
+        '<div class="yx-card-row"><span class="k">Задаток при бронировании</span><span class="v">требуется</span></div>' +
+        '<div class="yx-card-row"><span class="k">Комиссия агента<span class="pct">'+Math.round(AGENT_FEE_PCT*100)+'%</span></span><span class="v">'+fmtUSD(fee)+'</span></div>' +
+        '<div class="yx-card-row total"><span class="k">Итого к оплате</span><span class="v">'+fmtUSD(total)+' + задаток</span></div>';
+    }
+    card.hidden = false;
     card.innerHTML =
       '<div class="yx-card-icons">' +
         '<div class="left-group">' +
@@ -1246,27 +1330,20 @@
       '</div>' +
       '<div class="yx-card-photo">' + mediaHTML(a, {badgeRow:false, save:false}) + '</div>' +
       '<div class="yx-card-body">' +
-        '<div>' +
-          '<div class="yx-card-price"><b>' + fmtUSD(a.price) + '</b><span>≈ ' + fmtGEL(a.price) + '</span></div>' +
-          '<div class="yx-card-sub">цена продажи · ' + fmtUSD(a.price/a.area) + '/м²</div>' +
-        '</div>' +
+        '<div>' + priceHTML + '</div>' +
         '<div><div class="yx-card-title">' + a.title + '</div><div class="yx-card-sub">' + a.district + ' · ' + a.roomsLabel + ' · ' + a.area + ' м²</div></div>' +
-        '<div class="yx-card-rows">' +
-          '<div class="yx-card-row"><span class="k">Задаток при бронировании</span><span class="v">требуется</span></div>' +
-          '<div class="yx-card-row"><span class="k">Комиссия агента<span class="pct">'+Math.round(AGENT_FEE_PCT*100)+'%</span></span><span class="v">'+fmtUSD(fee)+'</span></div>' +
-          '<div class="yx-card-row total"><span class="k">Итого к оплате</span><span class="v">'+fmtUSD(total)+' + задаток</span></div>' +
-        '</div>' +
+        '<div class="yx-card-rows">' + rowsHTML + '</div>' +
         '<div class="yx-contact"><span class="avatar">R</span><div class="info">Агент RealtorAI<br><span class="phone" id="yx-phone-mask">+995 5●● ●● ●● ●●</span></div></div>' +
         '<button type="button" class="yx-reveal-btn" id="yx-reveal-btn">Показать телефон</button>' +
         '<button type="button" class="yx-calc-link" id="yx-card-calc">Открыть в инвесткалькуляторе →</button>' +
       '</div>';
 
-    document.getElementById("yx-card-close").addEventListener("click", closeDrawer);
+    document.getElementById("yx-card-close").addEventListener("click", function(){ card.hidden = true; });
     document.getElementById("yx-card-hide").addEventListener("click", function(){
       yx.hiddenIds.push(a.id);
+      renderMap(yx.results);
       updateHiddenChip();
-      renderResultsWall(currentList);
-      closeDrawer();
+      card.hidden = true;
       toastQuick("Объект скрыт");
     });
     document.getElementById("yx-card-save").addEventListener("click", function(){
@@ -1275,19 +1352,20 @@
       saveSaved(SAVED);
       updateFavCount();
       renderCard(a.id);
-      if (state.category==="favorites") renderResultsWall(categoryList("favorites"));
-      else renderResultsWall(currentList);
+      if (state.category==="favorites"){ yx.results = categoryList("favorites"); renderMap(yx.results); }
     });
     document.getElementById("yx-card-open").addEventListener("click", function(){
-      closeDrawer();
+      var targetId = a.id;
+      exitChatMode();
       switchView("chat");
+      renderResultsWall();
       document.getElementById("results-grid").scrollIntoView({behavior:"smooth", block:"start"});
-      var target = document.querySelector('[data-listing-id="'+a.id+'"]');
+      var target = document.querySelector('[data-listing-id="'+targetId+'"]');
       if (target){ target.classList.add("flash"); setTimeout(function(){ target.classList.remove("flash"); }, 1600); }
     });
     document.getElementById("yx-card-calc").addEventListener("click", function(){
       selectApt(a.id);
-      closeDrawer();
+      card.hidden = true;
       switchView("calculator");
     });
     document.getElementById("yx-reveal-btn").addEventListener("click", function(){
@@ -1301,12 +1379,12 @@
   function answerQ2(min, max){
     var list = yx.results.filter(function(a){ return a.price>=min && a.price<max; });
     if (list.length===0) list = yx.results.slice(0,4);
-    catalogVisible = 6;
-    renderResultsWall(list);
+    renderMap(list);
+    selectListing(list[0] ? list[0].id : null);
     appendThinking(function(){
       renderAiBlock({
         title: "Вот что подобрал ИИ",
-        breakdown: list.length ? (list.length + " вариант" + (list.length===1?"":list.length<5?"а":"ов") + " показано ниже, в подборке.") : "Под такие условия объектов не нашлось — попробуйте расширить бюджет."
+        breakdown: list.length ? (list.length + " вариант" + (list.length===1?"":list.length<5?"а":"ов") + " отмечено на карте.") : "Под такие условия объектов не нашлось — попробуйте расширить бюджет."
       });
     });
   }
@@ -1316,9 +1394,7 @@
     if (investing===true) list.sort(function(a,b){ return b.yieldLong-a.yieldLong; });
     else if (investing===false) list.sort(function(a,b){ return b.area-a.area; });
     else list.sort(function(a,b){ return b.rating-a.rating; });
-    yx.results = list;
-    catalogVisible = 6;
-    renderResultsWall(list);
+    renderMap(list);
     appendThinking(function(){
       renderAiBlock({
         lead: investing===true ? "Учёл: ищете для инвестиций — выше варианты с высокой доходностью." : investing===false ? "Учёл: подбираю для жизни — выше просторные варианты." : "Хорошо, ориентируюсь на рейтинг и доходность.",
@@ -1333,13 +1409,13 @@
     });
   }
   function startConversation(){
+    enterChatMode();
+    clearCategoryActive();
+    clearHistoryActive();
     threadEl().innerHTML = "";
     yx.hiddenIds = []; yx.investing = null; yx.rentMode = false;
     updateHiddenChip();
-    document.getElementById("results-title").textContent = "Все объекты в Тбилиси";
     var all = allApts().slice().sort(function(a,b){ return b.rating-a.rating; });
-    yx.results = all;
-    catalogVisible = 6;
     renderAiBlock({
       title: "Нашёл " + all.length + " объектов в Тбилиси",
       lead: "проверенные объекты с ИИ-оценкой доходности",
@@ -1351,27 +1427,27 @@
         {label:"Пока не важно", onSelect:function(){ answerQ1(null); }}
       ]
     });
-    renderResultsWall(all);
+    renderMap(all);
+    selectListing(all[0] ? all[0].id : null);
   }
   function runFreeText(text){
     text = (text||"").trim();
     if (!text) return;
+    enterChatMode();
     clearCategoryActive();
     clearHistoryActive();
-    document.body.classList.add("chat-active");
     yx.rentMode = false;
     appendUserLine(text);
     document.getElementById("yx-input").value = "";
+    document.getElementById("hero-input").value = "";
     appendThinking(function(){
       var q = analyzeQuery(text);
       var scored = allApts().map(function(a){ var s=scoreApt(a,q); return {apt:a, score:s.score}; }).sort(function(x,y){ return y.score-x.score; });
       var relevant = scored.filter(function(s){ return s.score>15; });
       var fallback = relevant.length===0;
       var list = (fallback ? scored : relevant).map(function(s){ return s.apt; });
-      yx.results = list;
-      catalogVisible = 6;
-      document.getElementById("results-title").textContent = fallback ? "Популярные варианты" : "Подходящие объекты";
-      renderResultsWall(list);
+      renderMap(list);
+      selectListing(list[0] ? list[0].id : null);
       renderAiBlock({
         title: fallback ? "Точных совпадений нет" : ("Нашёл " + list.length + " подходящих объект" + (list.length===1?"":list.length<5?"а":"ов")),
         breakdown: fallback ? "Показываю популярные варианты по рейтингу." : breakdownLine(list)
@@ -1381,14 +1457,14 @@
 
   document.getElementById("yx-send").addEventListener("click", function(){ runFreeText(document.getElementById("yx-input").value); });
   document.getElementById("yx-input").addEventListener("keydown", function(e){ if (e.key==="Enter"){ e.preventDefault(); runFreeText(this.value); } });
-  document.getElementById("yx-restart").addEventListener("click", function(){
-    clearCategoryActive();
-    clearHistoryActive();
-    startConversation();
-  });
+  document.getElementById("hero-send").addEventListener("click", function(){ runFreeText(document.getElementById("hero-input").value); });
+  document.getElementById("hero-input").addEventListener("keydown", function(e){ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); runFreeText(this.value); } });
+  document.getElementById("hero-chip-guided").addEventListener("click", startConversation);
+  document.getElementById("hero-chip-sample").addEventListener("click", function(){ runFreeText(this.textContent); });
+  document.getElementById("yx-restart").addEventListener("click", startConversation);
   document.getElementById("yx-restore-hidden").addEventListener("click", function(){
     yx.hiddenIds = [];
-    renderResultsWall(currentList);
+    renderMap(yx.results);
     updateHiddenChip();
     toastQuick("Скрытые объекты возвращены");
   });
@@ -1408,7 +1484,14 @@
     document.getElementById("yx-like").classList.remove("active");
     toastQuick("Учтём в следующий раз");
   });
-  document.getElementById("drawer-backdrop").addEventListener("click", closeDrawer);
+  document.getElementById("yx-zoom-in").addEventListener("click", function(){
+    yx.zoom = Math.min(1.5, yx.zoom + 0.15);
+    document.getElementById("yx-markers").style.transform = "scale(" + yx.zoom + ")";
+  });
+  document.getElementById("yx-zoom-out").addEventListener("click", function(){
+    yx.zoom = Math.max(0.7, yx.zoom - 0.15);
+    document.getElementById("yx-markers").style.transform = "scale(" + yx.zoom + ")";
+  });
 
   /* ---------------- currency toggle ---------------- */
   document.getElementById("currency-toggle").addEventListener("click", function(){
@@ -1442,11 +1525,10 @@
     closeSidebarMobile();
   });
   document.getElementById("sb-newchat").addEventListener("click", function(){
-    clearCategoryActive();
-    clearHistoryActive();
     switchView("chat");
-    document.body.classList.remove("chat-active");
-    startConversation();
+    exitChatMode();
+    document.getElementById("hero-input").value = "";
+    window.scrollTo(0,0);
     closeSidebarMobile();
   });
   document.getElementById("mobile-menu-btn").addEventListener("click", openSidebarMobile);
@@ -1466,12 +1548,11 @@
   }
   document.getElementById("sb-history-list").addEventListener("click", function(e){
     var btn = e.target.closest("[data-hist]"); if (!btn) return;
-    clearCategoryActive();
-    clearHistoryActive();
-    btn.classList.add("active");
     switchView("chat");
     var h = CHAT_HISTORY.find(function(x){ return x.id===btn.dataset.hist; });
     if (h) h.run();
+    clearHistoryActive();
+    btn.classList.add("active");
     closeSidebarMobile();
   });
 
@@ -1690,7 +1771,8 @@
     renderAnalytics();
     renderAdminList();
     updateCategoryCounts();
-    renderResultsWall(state.category ? categoryList(state.category) : (yx.results.length ? yx.results : allApts()));
+    renderResultsWall();
+    if (state.chatMode && yx.results.length) renderMap(yx.results);
     if (!calcState.aptId) calcState.aptId = allApts()[0].id;
     document.getElementById("c-select").value = calcState.aptId;
     recompute();
@@ -1699,8 +1781,6 @@
   selectApt(allApts()[0].id);
   setMode("hybrid");
   renderHistory();
-  updateCategoryCounts();
-  startConversation();
   renderAll();
 })();
 </script>
