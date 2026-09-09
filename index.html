@@ -1,0 +1,2135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: стартовый экран с витриной объектов и поиском ChatGPT-стиля, чат-режим с картой, живой ИИ на базе Claude API для свободного общения о недвижимости Грузии, боковая панель с историей чатов и фильтрами «Аренда», «Новостройки», «Вторичка», «Избранное», инвестиционный калькулятор, аналитика районов и панель агента.">
+<title>RealtorAI</title>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@200..600,0..1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#f9f8f5;
+    --surface-1:#ffffff;
+    --surface-2:#f3efea;
+    --ai-tint:#ebf1ef;
+    --ink:#2b2d2f;
+    --ink-soft:#6b706d;
+    --line:rgba(43,45,47,.10);
+    --line-active:rgba(27,59,54,.22);
+    --primary:#1b3b36;
+    --primary-ink:#ffffff;
+    --primary-fixed:#cfe9e2;
+    --primary-fixed-ink:#0f2521;
+    --secondary:#b5602f;
+    --secondary-ink:#ffffff;
+    --secondary-fixed:#fbe1cf;
+    --secondary-fixed-ink:#6b3112;
+    --tertiary:#8a6a10;
+    --tertiary-fixed:#f6e2a4;
+    --tertiary-fixed-ink:#4a3a06;
+    --good:#0f7d54;
+    --shadow: 0 1px 2px rgba(27,59,54,.03), 0 14px 30px -12px rgba(27,59,54,.10);
+    --shadow-lg: 0 4px 10px rgba(27,59,54,.05), 0 30px 60px -20px rgba(27,59,54,.18);
+    --glass-bg: rgba(255,255,255,.90);
+    --radius-s:8px; --radius-m:12px; --radius-l:16px; --radius-xl:20px;
+    --map-bg:#eae6d8;
+    --map-park:#cfe1bd;
+    --map-road:#ffffff;
+    --map-pin:#2f6fed;
+    --map-badge:#7c4dff;
+    --map-yellow:#ffcc00;
+    --map-yellow-ink:#1a1400;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --canvas:#121815;
+      --surface-1:#182420;
+      --surface-2:#1d2b26;
+      --ai-tint:#173029;
+      --ink:#eef1ef;
+      --ink-soft:#9fada7;
+      --line:rgba(238,241,239,.12);
+      --line-active:rgba(207,233,226,.28);
+      --primary:#79bfae;
+      --primary-ink:#052420;
+      --primary-fixed:#173029;
+      --primary-fixed-ink:#bfe6da;
+      --secondary:#e2925e;
+      --secondary-ink:#2a1204;
+      --secondary-fixed:#3a2515;
+      --secondary-fixed-ink:#f6cda5;
+      --tertiary:#e0c25e;
+      --tertiary-fixed:#332a10;
+      --tertiary-fixed-ink:#f0dda0;
+      --good:#4fd39a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 16px 34px -16px rgba(0,0,0,.6);
+      --shadow-lg: 0 4px 10px rgba(0,0,0,.4), 0 32px 64px -24px rgba(0,0,0,.7);
+      --glass-bg: rgba(24,36,32,.86);
+      --map-bg:#232b23;
+      --map-park:#2b3a26;
+      --map-road:#33403a;
+      --map-pin:#5b8fff;
+      --map-badge:#a389ff;
+      --map-yellow:#ffcc00;
+      --map-yellow-ink:#1a1400;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --canvas:#121815; --surface-1:#182420; --surface-2:#1d2b26; --ai-tint:#173029;
+    --ink:#eef1ef; --ink-soft:#9fada7; --line:rgba(238,241,239,.12); --line-active:rgba(207,233,226,.28);
+    --primary:#79bfae; --primary-ink:#052420; --primary-fixed:#173029; --primary-fixed-ink:#bfe6da;
+    --secondary:#e2925e; --secondary-ink:#2a1204; --secondary-fixed:#3a2515; --secondary-fixed-ink:#f6cda5;
+    --tertiary:#e0c25e; --tertiary-fixed:#332a10; --tertiary-fixed-ink:#f0dda0; --good:#4fd39a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 16px 34px -16px rgba(0,0,0,.6);
+    --shadow-lg: 0 4px 10px rgba(0,0,0,.4), 0 32px 64px -24px rgba(0,0,0,.7);
+    --glass-bg: rgba(24,36,32,.86);
+    --map-bg:#232b23; --map-park:#2b3a26; --map-road:#33403a; --map-pin:#5b8fff; --map-badge:#a389ff;
+    --map-yellow:#ffcc00; --map-yellow-ink:#1a1400;
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:"Manrope","Segoe UI",sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4{font-family:"Epilogue","Segoe UI",sans-serif;font-weight:700;line-height:1.14;letter-spacing:-.02em;margin:0;text-wrap:balance;}
+  .mono,.num{font-family:"JetBrains Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+  a{color:inherit;text-decoration:none;}
+  img{max-width:100%;}
+  ::selection{background:var(--tertiary-fixed);color:var(--tertiary-fixed-ink);}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important;}}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;font-size:1.15em;line-height:1;vertical-align:-.2em;}
+  .msi.on{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
+  :focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+
+  .wrap{max-width:1240px;margin:0 auto;padding-inline:24px;}
+  .band{padding-block:clamp(56px,7vw,96px);}
+  .eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:"JetBrains Mono";font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--secondary);}
+  .label-caps{font-family:"JetBrains Mono";font-size:.68rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);}
+
+  /* price emphasis toggle (currency switcher) */
+  .price-gel{opacity:.62;font-weight:500;}
+  body.gel-active .price-usd{opacity:.6;font-weight:500;color:var(--ink-soft);}
+  body.gel-active .price-gel{opacity:1;font-weight:700;color:var(--primary);}
+
+  /* ---------- glass / card system ---------- */
+  .glass-card{background:var(--surface-1);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:var(--radius-l);}
+  .glass-frost{background:var(--glass-bg);backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--line-active);box-shadow:var(--shadow-lg);}
+
+  /* ---------- app shell (sidebar layout, Claude/ChatGPT-style) ---------- */
+  .app-shell{display:flex;align-items:stretch;min-height:100vh;}
+  .app-sidebar{
+    width:272px;flex:none;background:var(--surface-2);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;position:sticky;top:0;align-self:flex-start;height:100vh;
+    transition:transform .25s ease;z-index:70;
+  }
+  .sb-top{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 12px;}
+  .sb-brand{display:flex;align-items:center;gap:10px;}
+  .sb-brand .mark{width:32px;height:32px;border-radius:9px;background:var(--primary);color:var(--primary-fixed);display:flex;align-items:center;justify-content:center;font-family:"Epilogue";font-weight:800;font-size:1rem;flex:none;}
+  .sb-brand .name{font-family:"Epilogue";font-weight:700;font-size:1rem;color:var(--primary);letter-spacing:-.01em;}
+  .sb-close{display:none;border:none;background:none;color:var(--ink-soft);cursor:pointer;width:32px;height:32px;border-radius:8px;align-items:center;justify-content:center;}
+  .sb-close:hover{background:var(--surface-1);color:var(--ink);}
+
+  .sb-newchat{display:flex;align-items:center;gap:9px;margin:2px 14px 16px;padding:11px 14px;border-radius:var(--radius-m);border:1px solid var(--line-active);background:var(--surface-1);color:var(--ink);font-family:"Manrope";font-weight:600;font-size:.86rem;cursor:pointer;box-shadow:var(--shadow);}
+  .sb-newchat:hover{border-color:var(--primary);color:var(--primary);}
+
+  .sb-nav{padding:0 10px;display:flex;flex-direction:column;gap:2px;}
+  .sb-nav button{display:flex;align-items:center;gap:11px;width:100%;padding:10px;border-radius:var(--radius-m);border:none;background:none;color:var(--ink-soft);font-family:"Manrope";font-weight:600;font-size:.86rem;cursor:pointer;text-align:left;}
+  .sb-nav button .material-symbols-outlined{font-size:1.15rem;}
+  .sb-nav button:hover{background:var(--surface-1);color:var(--ink);}
+  .sb-nav button.active{background:var(--primary-fixed);color:var(--primary-fixed-ink);}
+  .sb-nav button .cnt{margin-left:auto;font-family:"JetBrains Mono";font-size:.66rem;font-weight:700;color:var(--ink-soft);background:var(--surface-1);border-radius:99px;padding:1px 7px;}
+  .sb-nav button.active .cnt{background:rgba(255,255,255,.5);color:inherit;}
+
+  .sb-history{flex:1;min-height:0;overflow-y:auto;padding:18px 10px 6px;}
+  .sb-history-label{padding:0 10px 8px;font-family:"JetBrains Mono";font-size:.64rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);}
+  .sb-hist-item{display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;border-radius:var(--radius-m);border:none;background:none;color:var(--ink);font-family:"Manrope";font-size:.82rem;cursor:pointer;text-align:left;}
+  .sb-hist-item .material-symbols-outlined{font-size:1rem;color:var(--ink-soft);flex:none;}
+  .sb-hist-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sb-hist-item:hover{background:var(--surface-1);}
+  .sb-hist-item.active{background:var(--surface-1);color:var(--primary);font-weight:700;}
+
+  .sb-bottom{border-top:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:2px;}
+  .sb-bottom button{display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border-radius:var(--radius-m);border:none;background:none;color:var(--ink-soft);font-family:"Manrope";font-weight:600;font-size:.82rem;cursor:pointer;text-align:left;}
+  .sb-bottom button .material-symbols-outlined{font-size:1.1rem;}
+  .sb-bottom button:hover{background:var(--surface-1);color:var(--ink);}
+  .sb-bottom button.active{color:var(--primary);}
+  .sb-row2{display:flex;gap:6px;margin-top:4px;}
+  .sb-row2 #currency-toggle{flex:1;justify-content:center;}
+  .sb-row2 .icon-btn{border:1px solid var(--line-active);}
+  #ai-settings-btn{position:relative;}
+  .ai-status-dot{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--ink-soft);opacity:.4;flex:none;}
+  .ai-status-dot.on{background:var(--good);opacity:1;box-shadow:0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent);}
+
+  /* ---------- modal (AI settings) ---------- */
+  .modal-backdrop{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(15,20,18,.5);z-index:120;padding:20px;}
+  .modal-backdrop[hidden]{display:none;}
+  .modal{width:100%;max-width:440px;max-height:90vh;overflow-y:auto;background:var(--surface-1);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:24px;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .modal-head h3{display:flex;align-items:center;gap:9px;font-size:1.15rem;}
+  .modal-head h3 .material-symbols-outlined{color:var(--secondary);}
+  .modal-desc{color:var(--ink-soft);font-size:.88rem;line-height:1.5;margin:0 0 18px;}
+  .modal-hint{font-size:.76rem;color:var(--ink-soft);line-height:1.5;margin:6px 0 0;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+
+  .mobile-bar{display:none;position:sticky;top:0;z-index:40;align-items:center;gap:10px;padding:12px 16px;background:color-mix(in srgb, var(--surface-1) 90%, transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+  .mobile-menu-btn{border:none;background:none;color:var(--ink);cursor:pointer;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .mobile-menu-btn:hover{background:var(--surface-2);}
+  .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(15,20,18,.45);z-index:65;}
+
+  @media (max-width:980px){
+    .mobile-bar{display:flex;}
+    .sb-close{display:flex;}
+    .app-sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);box-shadow:var(--shadow-lg);}
+    .app-shell.sb-open .app-sidebar{transform:translateX(0);}
+    .app-shell.sb-open .sidebar-backdrop{display:block;}
+  }
+
+  .app-main{flex:1;min-width:0;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .trail{display:flex;align-items:center;gap:10px;}
+  .icon-btn{position:relative;width:40px;height:40px;border-radius:var(--radius-m);border:none;background:none;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink);}
+  .badge-count{position:absolute;top:2px;right:2px;min-width:16px;height:16px;padding:0 3px;border-radius:99px;background:var(--secondary);color:var(--secondary-ink);font-family:"JetBrains Mono";font-size:.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  #currency-toggle{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--radius-m);border:1px solid var(--line-active);background:none;cursor:pointer;font-family:"JetBrains Mono";font-size:.72rem;font-weight:700;color:var(--ink-soft);}
+  #currency-toggle .u{color:var(--primary);}
+  body.gel-active #currency-toggle .u{color:var(--ink-soft);}
+  body.gel-active #currency-toggle .g{color:var(--primary);}
+  .cta-primary{display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border-radius:var(--radius-m);background:var(--primary);color:var(--primary-ink);font-family:"Manrope";font-weight:600;font-size:.86rem;border:none;cursor:pointer;transition:filter .15s, transform .1s;}
+  .cta-primary:hover{filter:brightness(1.12);}
+  .cta-primary:active{transform:scale(.97);}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;overflow:hidden;padding-top:clamp(48px,7vw,84px);}
+  .hero-decor{position:absolute;inset:0;z-index:-1;pointer-events:none;}
+  .dot-field{position:absolute;inset:0;opacity:.5;background-image:radial-gradient(var(--line-active) 1px, transparent 1px);background-size:26px 26px;}
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;}
+  .blob-a{width:360px;height:360px;top:-120px;right:14%;background:var(--primary-fixed);}
+  .blob-b{width:280px;height:280px;top:220px;left:4%;background:var(--secondary-fixed);}
+  .hero-inner{max-width:700px;margin:0 auto;text-align:center;}
+  h1.headline{font-size:clamp(2.15rem,4.6vw,3.4rem);margin-top:20px;color:var(--primary);}
+  h1.headline em{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:var(--secondary);font-weight:600;}
+  .lede{font-size:1.1rem;color:var(--ink-soft);max-width:56ch;margin:16px auto 0;}
+
+  /* ---------- hero search box (ChatGPT-style, "hello" empty state) ---------- */
+  .hero-box{max-width:720px;margin:34px auto 0;position:relative;}
+  .hero-box textarea{width:100%;resize:none;border:none;background:var(--surface-2);border-radius:28px;padding:22px 64px 22px 26px;font-family:"Manrope";font-size:1.02rem;color:var(--ink);outline:none;box-shadow:var(--shadow-lg);min-height:64px;line-height:1.4;}
+  .hero-box textarea:focus{box-shadow:var(--shadow-lg), 0 0 0 2px var(--line-active);}
+  .hero-box .send{position:absolute;right:14px;bottom:14px;width:42px;height:42px;border-radius:50%;background:var(--ink);color:var(--surface-1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
+  .hero-box .send:hover{filter:brightness(1.2);}
+  .hero-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:16px auto 0;max-width:720px;}
+  .hero-chips button{background:var(--surface-1);border:1px solid var(--line-active);border-radius:100px;padding:9px 16px;font-family:"Manrope";font-size:.84rem;font-weight:600;color:var(--ink);cursor:pointer;}
+  .hero-chips button:hover{border-color:var(--primary);color:var(--primary);}
+
+  /* ---------- AI chat + map (chat state, Yandex.Недвижимость-style) ---------- */
+  #chat-stage{display:none;padding-block:clamp(20px,4vw,44px);}
+  body.chat-mode #hero-browse, body.chat-mode #listings{display:none;}
+  body.chat-mode #chat-stage{display:block;}
+
+  .yx-shell{
+    max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr;
+    border-radius:var(--radius-xl);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-lg);
+    background:var(--surface-1);
+  }
+  @media (min-width:900px){.yx-shell{grid-template-columns:400px 1fr;min-height:620px;}}
+
+  .yx-chat{display:flex;flex-direction:column;padding:22px 22px 18px;min-height:360px;}
+  .yx-brand-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .yx-brand-icon{position:relative;width:32px;height:32px;border-radius:9px;background:var(--primary);color:var(--primary-fixed);display:flex;align-items:center;justify-content:center;font-family:"Epilogue";font-weight:800;font-size:.92rem;}
+  .yx-brand-icon .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--secondary);border:2px solid var(--surface-1);}
+  .yx-restart{border:none;background:none;color:var(--ink-soft);cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+  .yx-restart:hover{background:var(--surface-2);color:var(--ink);}
+
+  .yx-thread{flex:1;overflow-y:auto;padding:8px 2px;max-height:520px;}
+  .yx-ai-block{margin-bottom:18px;}
+  .yx-ai-block h3{font-size:1.22rem;line-height:1.3;color:var(--ink);}
+  .yx-ai-block p.lead{display:flex;align-items:center;gap:7px;color:var(--ink-soft);font-size:.92rem;margin-top:8px;}
+  .yx-ai-block p.lead .material-symbols-outlined{font-size:1rem;color:var(--secondary);}
+  .yx-ai-block p.breakdown{font-size:.9rem;color:var(--ink-soft);margin-top:8px;line-height:1.55;}
+  .yx-ai-text p{margin:0 0 10px;font-size:.92rem;color:var(--ink);line-height:1.55;}
+  .yx-ai-text p:last-child{margin-bottom:0;}
+  .yx-ai-text ul{margin:0 0 10px;padding-left:20px;}
+  .yx-ai-text li{font-size:.92rem;color:var(--ink);line-height:1.5;margin-bottom:4px;}
+  .yx-question{margin-top:14px;font-size:.94rem;color:var(--ink);font-weight:600;}
+  .yx-options{margin-top:6px;display:flex;flex-direction:column;}
+  .yx-option{display:flex;align-items:center;gap:12px;padding:12px 4px;border:none;background:none;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;width:100%;font-family:"Manrope";font-size:.92rem;color:var(--ink);}
+  .yx-option:last-child{border-bottom:none;}
+  .yx-option .plus{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line-active);display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink-soft);font-size:.8rem;}
+  .yx-option:hover{color:var(--primary);}
+  .yx-option:hover .plus{border-color:var(--primary);color:var(--primary);}
+  .yx-user-line{display:flex;justify-content:flex-end;margin:10px 0;}
+  .yx-user-line span{background:var(--surface-2);border-radius:100px;padding:8px 14px;font-size:.86rem;color:var(--ink);max-width:88%;}
+  .yx-thinking{display:flex;align-items:center;gap:7px;color:var(--ink-soft);font-family:"JetBrains Mono";font-size:.78rem;margin:6px 0 18px;}
+
+  .yx-actions{display:flex;align-items:center;gap:8px;padding-top:4px;}
+  .yx-actions button{border:none;background:none;color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;padding:6px;border-radius:8px;}
+  .yx-actions button:hover{background:var(--surface-2);color:var(--ink);}
+  .yx-actions button.active{color:var(--secondary);}
+
+  .yx-composer{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+  .yx-composer input{flex:1;border:none;background:var(--surface-2);border-radius:100px;padding:12px 18px;font-family:"Manrope";font-size:.9rem;color:var(--ink);outline:none;}
+  .yx-composer input:focus{box-shadow:0 0 0 2px var(--line-active);}
+  .yx-composer .send{width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--surface-1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
+  .yx-composer .send:hover{filter:brightness(1.2);}
+
+  .yx-map{position:relative;background:var(--map-bg);overflow:hidden;min-height:360px;}
+  @media (min-width:900px){.yx-map{min-height:auto;}}
+  .yx-map svg.yx-roads{position:absolute;inset:0;width:100%;height:100%;}
+  .yx-map .park{position:absolute;border-radius:44% 56% 52% 48%/50% 44% 56% 50%;background:var(--map-park);opacity:.9;}
+  .yx-marker{position:absolute;transform:translate(-50%,-50%);background:var(--surface-1);border:1.5px solid var(--line-active);color:var(--ink);font-family:"JetBrains Mono";font-weight:700;font-size:.72rem;padding:6px 10px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);white-space:nowrap;transition:transform .15s;z-index:2;}
+  .yx-marker:hover{transform:translate(-50%,-50%) scale(1.07);}
+  .yx-marker.active{background:var(--map-pin);color:#fff;border-color:var(--map-pin);z-index:3;}
+  .yx-marker .rbadge{position:absolute;top:-9px;left:-9px;width:19px;height:19px;border-radius:50%;background:var(--map-badge);color:#fff;font-size:.6rem;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface-1);}
+  .yx-map-controls{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:4;}
+  .yx-map-controls button{width:34px;height:34px;border-radius:9px;background:var(--surface-1);border:1px solid var(--line);box-shadow:var(--shadow);color:var(--ink);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+  .yx-map-controls button:hover{background:var(--surface-2);}
+
+  .yx-card{position:absolute;top:14px;left:14px;bottom:14px;width:290px;background:var(--surface-1);border-radius:var(--radius-l);box-shadow:var(--shadow-lg);overflow:hidden;display:flex;flex-direction:column;z-index:5;}
+  @media (max-width:640px){.yx-card{position:static;width:auto;margin:14px;}}
+  .yx-card[hidden]{display:none;}
+  .yx-card-icons{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:2;}
+  .yx-card-icons .left-group{display:flex;gap:6px;}
+  .yx-icon-btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.94);border:none;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;box-shadow:var(--shadow);}
+  .yx-icon-btn .material-symbols-outlined{font-size:1.05rem;}
+  .yx-icon-btn.on{color:var(--secondary);}
+  .yx-card-photo{aspect-ratio:4/3;position:relative;flex:none;}
+  .yx-card-photo .r-media{aspect-ratio:auto;height:100%;}
+  .yx-card-body{padding:15px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:11px;}
+  .yx-card-price{display:flex;align-items:baseline;gap:6px;}
+  .yx-card-price b{font-family:"JetBrains Mono";font-weight:800;font-size:1.35rem;color:var(--ink);}
+  .yx-card-price span{font-family:"JetBrains Mono";font-size:.76rem;color:var(--ink-soft);}
+  .yx-card-title{font-size:.96rem;font-weight:700;font-family:"Epilogue";color:var(--ink);}
+  .yx-card-sub{font-size:.78rem;color:var(--ink-soft);margin-top:-6px;}
+  .yx-card-rows{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px;}
+  .yx-card-row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;gap:8px;}
+  .yx-card-row .k{color:var(--ink-soft);display:flex;align-items:center;gap:6px;}
+  .yx-card-row .k .pct{background:var(--surface-2);border-radius:6px;padding:1px 6px;font-family:"JetBrains Mono";font-size:.66rem;color:var(--ink-soft);}
+  .yx-card-row .v{font-family:"JetBrains Mono";font-weight:600;white-space:nowrap;}
+  .yx-card-row.total{border-top:1px dashed var(--line);padding-top:8px;}
+  .yx-card-row.total .v,.yx-card-row.total .k{font-weight:700;color:var(--ink);}
+  .yx-contact{background:var(--surface-2);border-radius:var(--radius-m);padding:10px 12px;display:flex;align-items:center;gap:10px;}
+  .yx-contact .avatar{width:34px;height:34px;border-radius:50%;background:var(--primary);color:var(--primary-fixed);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;font-size:.86rem;}
+  .yx-contact .info{font-size:.76rem;color:var(--ink-soft);line-height:1.5;}
+  .yx-contact .phone{font-family:"JetBrains Mono";font-weight:700;color:var(--ink);font-size:.82rem;}
+  .yx-reveal-btn{width:100%;padding:13px;border-radius:var(--radius-m);background:var(--map-yellow);color:var(--map-yellow-ink);border:none;font-family:"Manrope";font-weight:700;font-size:.88rem;cursor:pointer;}
+  .yx-reveal-btn:hover{filter:brightness(1.05);}
+  .yx-reveal-btn:disabled{cursor:default;}
+  .yx-calc-link{text-align:center;font-family:"Manrope";font-size:.8rem;color:var(--primary);font-weight:600;cursor:pointer;background:none;border:none;padding:2px;}
+  .yx-calc-link:hover{text-decoration:underline;}
+  .yx-more-chip{margin:10px 2px 0;align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:100px;padding:8px 14px;font-family:"Manrope";font-size:.8rem;color:var(--ink);cursor:pointer;}
+  .yx-more-chip:hover{border-color:var(--primary);}
+
+  /* ---------- section headers ---------- */
+  .section-head{display:flex;flex-direction:column;gap:14px;margin-bottom:36px;}
+  @media (min-width:860px){.section-head{flex-direction:row;align-items:flex-end;justify-content:space-between;}}
+  .section-head h2{font-size:clamp(1.65rem,2.8vw,2.15rem);}
+  .section-head .desc{color:var(--ink-soft);max-width:46ch;font-size:.94rem;}
+  .status-line{display:flex;align-items:center;gap:10px;font-family:"JetBrains Mono";font-size:.76rem;color:var(--ink-soft);white-space:nowrap;}
+  .status-line b{color:var(--primary);font-weight:700;}
+  .status-line .sep{width:1px;height:12px;background:var(--line-active);}
+
+  /* ---------- listing / results grid (photo-forward, Недвижимость AI style) ---------- */
+  #listings{background:var(--surface-1);border-block:1px solid var(--line);position:relative;padding-bottom:120px;}
+  .results-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (min-width:640px){.results-grid{grid-template-columns:1fr 1fr 1fr;}}
+  @media (min-width:1240px){.results-grid{grid-template-columns:repeat(4,1fr);}}
+  .r-card{border-radius:var(--radius-l);cursor:pointer;transition:transform .2s ease, box-shadow .2s ease, outline-color .3s ease;outline:2px solid transparent;outline-offset:3px;}
+  .r-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+  .r-card.flash{outline-color:var(--secondary);}
+  .r-media{position:relative;aspect-ratio:4/5;overflow:hidden;background:linear-gradient(155deg, var(--surface-2) 0%, var(--primary) 130%);border-radius:var(--radius-l);}
+  .r-media .horizon{position:absolute;left:0;right:0;bottom:34%;height:2px;background:linear-gradient(90deg, transparent, var(--tertiary), transparent);opacity:.7;}
+  .r-media .skyline{position:absolute;left:0;right:0;bottom:34%;display:flex;align-items:flex-end;gap:3%;padding:0 6%;height:30%;opacity:.85;}
+  .r-media .skyline i{display:block;background:var(--ink);opacity:.28;border-radius:2px 2px 0 0;flex:none;}
+  .r-media .grain{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.14), transparent 60%);}
+  .metric-chip{position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.92);color:var(--primary);font-family:"JetBrains Mono";font-size:.64rem;font-weight:700;padding:5px 9px;border-radius:99px;backdrop-filter:blur(6px);}
+  .metric-chip .material-symbols-outlined{font-size:.9rem;}
+  .r-mini{padding:10px 2px 0;}
+  .r-mini .price-row{gap:6px;}
+  .r-mini .price-usd{font-size:1.05rem;}
+  .r-mini .price-gel{font-size:.72rem;}
+  .r-mini .r-title{font-size:.9rem;font-weight:600;font-family:"Manrope";margin-top:1px;}
+  .r-mini .r-sub{font-size:.76rem;margin-top:1px;}
+
+  /* "люди ищут" prompt cards mixed into the grid */
+  .r-suggest{border-radius:var(--radius-l);background:var(--surface-2);border:1px solid var(--line);padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;aspect-ratio:4/5;cursor:pointer;transition:border-color .2s ease, transform .2s ease;}
+  .r-suggest:hover{border-color:var(--primary);transform:translateY(-3px);}
+  .r-suggest .tag{align-self:flex-start;display:flex;align-items:center;gap:6px;background:var(--surface-1);border-radius:99px;padding:6px 12px;font-family:"JetBrains Mono";font-size:.64rem;font-weight:700;color:var(--ink-soft);}
+  .r-suggest .avatars{display:flex;}
+  .r-suggest .avatars span{width:30px;height:30px;border-radius:50%;border:2px solid var(--surface-2);margin-left:-10px;background:var(--primary-fixed);}
+  .r-suggest .avatars span:first-child{margin-left:0;}
+  .r-suggest p{font-size:.92rem;font-weight:600;color:var(--ink);line-height:1.35;margin:0;}
+
+  /* sticky bottom composer while browsing the grid */
+  .browse-composer-wrap{position:fixed;left:0;right:0;bottom:20px;display:flex;justify-content:center;pointer-events:none;z-index:30;padding-inline:24px;}
+  .browse-composer-wrap .hero-box{pointer-events:auto;margin:0;width:100%;max-width:620px;}
+  @media (min-width:980px){.browse-composer-wrap{left:272px;}}
+  @media (min-width:980px){#listings:has(#browse-card:not([hidden])) .browse-composer-wrap{padding-right:420px;}}
+  body.chat-mode .browse-composer-wrap{display:none;}
+
+  /* floating object card over the grid (position:fixed panel, not a map) */
+  .browse-card{position:fixed;top:56px;right:40px;bottom:56px;width:380px;max-width:calc(100vw - 32px);background:var(--surface-1);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);overflow:hidden;overflow-y:auto;display:flex;flex-direction:column;z-index:80;}
+  .browse-card[hidden]{display:none;}
+  @media (max-width:760px){.browse-card{left:16px;right:16px;top:40px;bottom:40px;width:auto;}}
+
+  .badge-row{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .badge-tags{display:flex;gap:6px;flex-wrap:wrap;}
+  .b-district{background:rgba(255,255,255,.92);color:var(--primary);font-family:"JetBrains Mono";font-size:.66rem;font-weight:700;letter-spacing:.04em;padding:5px 9px;border-radius:6px;backdrop-filter:blur(6px);}
+  .b-sub{font-family:"JetBrains Mono";font-size:.66rem;font-weight:700;letter-spacing:.04em;padding:5px 9px;border-radius:6px;color:#fff;}
+  .b-metric{display:flex;align-items:center;gap:5px;background:var(--primary);color:var(--primary-fixed);font-family:"JetBrains Mono";font-size:.7rem;font-weight:700;padding:6px 10px;border-radius:6px;box-shadow:var(--shadow);white-space:nowrap;}
+  .b-metric .material-symbols-outlined{color:var(--tertiary-fixed);font-size:1rem;}
+  .match-pill{position:absolute;bottom:14px;left:14px;display:flex;align-items:center;gap:7px;background:rgba(27,59,54,.88);color:#fff;font-family:"JetBrains Mono";font-size:.72rem;padding:6px 12px;border-radius:99px;backdrop-filter:blur(6px);}
+  .match-pill .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;}
+  .save-btn{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.9);border:none;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);cursor:pointer;backdrop-filter:blur(6px);z-index:2;}
+  .save-btn.on{color:var(--secondary);}
+
+  .r-body{background:var(--surface-1);padding:22px;display:flex;flex-direction:column;gap:14px;flex:1;border:1px solid var(--line);border-top:none;border-radius:0 0 var(--radius-l) var(--radius-l);}
+  .price-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .price-main{display:flex;align-items:baseline;gap:8px;}
+  .price-usd{font-family:"JetBrains Mono";font-weight:700;font-size:1.35rem;color:var(--primary);}
+  .price-gel{font-family:"JetBrains Mono";font-size:.78rem;color:var(--ink-soft);}
+  .price-m2{font-family:"JetBrains Mono";font-size:.76rem;color:var(--ink-soft);}
+  .r-title{font-size:1.15rem;}
+  .r-sub{font-size:.82rem;color:var(--ink-soft);margin-top:2px;}
+  .verdict{display:flex;gap:10px;padding:12px 13px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-m);font-size:.85rem;color:var(--ink-soft);}
+  .verdict .material-symbols-outlined{color:var(--secondary);flex:none;margin-top:1px;}
+  .verdict b{color:var(--primary);font-weight:600;}
+  .metrics-ribbon{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-top:14px;border-top:1px solid var(--line);}
+  .metric-cell{background:var(--surface-2);border-radius:6px;padding:9px 8px;text-align:center;}
+  .metric-cell .k{display:block;font-family:"JetBrains Mono";font-size:.6rem;color:var(--ink-soft);letter-spacing:.04em;}
+  .metric-cell .v{font-family:"JetBrains Mono";font-weight:700;font-size:.86rem;margin-top:3px;display:block;color:var(--ink);}
+  .metric-cell .v.pos{color:var(--good);}
+  .r-actions{display:flex;gap:10px;}
+  .btn-cal{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:var(--radius-m);background:var(--primary);color:var(--primary-ink);border:none;font-family:"Manrope";font-weight:600;font-size:.84rem;cursor:pointer;}
+  .btn-cal:hover{filter:brightness(1.1);}
+  .btn-more{padding:11px 16px;border-radius:var(--radius-m);border:1px solid var(--line-active);background:none;color:var(--primary);font-family:"Manrope";font-weight:600;font-size:.84rem;cursor:pointer;}
+  .new-flag{position:absolute;top:14px;left:14px;background:var(--tertiary);color:var(--tertiary-fixed-ink);font-family:"JetBrains Mono";font-size:.62rem;font-weight:700;padding:4px 8px;border-radius:6px;text-transform:uppercase;}
+
+  .show-more-row{margin-top:36px;text-align:center;}
+  .btn-outline{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:var(--radius-m);border:1px solid var(--line-active);color:var(--primary);background:none;font-family:"Manrope";font-weight:600;font-size:.9rem;cursor:pointer;}
+  .btn-outline:hover{background:var(--primary);color:var(--primary-ink);border-color:var(--primary);}
+
+  /* ---------- calculator ---------- */
+  #calculator{background:var(--canvas);}
+  .calc-grid{display:grid;grid-template-columns:1fr;gap:28px;align-items:start;}
+  @media (min-width:1080px){.calc-grid{grid-template-columns:5fr 7fr;}}
+  .calc-left{padding:26px;display:flex;flex-direction:column;gap:20px;}
+  .calc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:16px;}
+  .calc-head h3{font-size:1.1rem;color:var(--primary);}
+  .lot-chip{font-family:"JetBrains Mono";font-size:.66rem;font-weight:700;color:var(--secondary);background:var(--secondary-fixed);padding:4px 8px;border-radius:6px;}
+  .field{display:flex;flex-direction:column;gap:7px;}
+  .field label{font-size:.86rem;font-weight:600;color:var(--ink);}
+  .field select, .field input[type=text], .field input[type=number]{
+    font-family:"Manrope";font-size:.9rem;color:var(--ink);background:var(--surface-2);
+    border:1px solid var(--line-active);border-radius:var(--radius-m);padding:11px 13px;width:100%;
+  }
+  .money-input{position:relative;}
+  .money-input span{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-family:"JetBrains Mono";color:var(--ink-soft);}
+  .money-input input{padding-left:24px;font-family:"JetBrains Mono";font-weight:600;color:var(--primary);}
+  .field-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .mode-switch{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--surface-2);padding:6px;border-radius:var(--radius-m);border:1px solid var(--line);}
+  .mode-switch button{padding:9px 4px;border-radius:8px;border:none;background:none;font-family:"Manrope";font-size:.76rem;font-weight:600;color:var(--ink-soft);cursor:pointer;}
+  .mode-switch button.active{background:var(--primary);color:var(--primary-ink);box-shadow:var(--shadow);}
+  .mode-caption{font-size:.76rem;color:var(--ink-soft);margin-top:-8px;}
+  .slider-head{display:flex;align-items:center;justify-content:space-between;}
+  .slider-head .val{font-family:"JetBrains Mono";font-weight:700;color:var(--secondary);}
+  input[type=range]{width:100%;accent-color:var(--secondary);height:6px;}
+  .slider-ticks{display:flex;justify-content:space-between;font-family:"JetBrains Mono";font-size:.68rem;color:var(--ink-soft);}
+  .slider-ticks .on{color:var(--secondary);font-weight:700;}
+  .assump-rows{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px;}
+  .assump-row{display:flex;align-items:center;justify-content:space-between;font-size:.85rem;}
+  .assump-row .v{font-family:"JetBrains Mono";font-weight:700;color:var(--primary);}
+  .recalc-btn{width:100%;padding:12px;border-radius:var(--radius-m);background:var(--surface-2);border:1px solid var(--line-active);color:var(--primary);font-family:"Manrope";font-weight:600;font-size:.86rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .recalc-btn:hover{background:var(--primary);color:var(--primary-ink);}
+  .pulse-once{animation:pulseonce .5s ease;}
+  @keyframes pulseonce{0%{box-shadow:0 0 0 0 var(--line-active);}100%{box-shadow:0 0 0 8px transparent;}}
+
+  .calc-right{display:flex;flex-direction:column;gap:20px;}
+  .metric-tiles{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media (min-width:560px){.metric-tiles{grid-template-columns:repeat(3,1fr);}}
+  .m-tile{background:var(--surface-1);border:1px solid var(--line);border-radius:var(--radius-l);padding:18px;box-shadow:var(--shadow);}
+  .m-tile .top{display:flex;align-items:center;justify-content:space-between;color:var(--ink-soft);margin-bottom:6px;}
+  .m-tile .top .material-symbols-outlined{color:var(--primary);font-size:1.1rem;}
+  .m-tile .big{font-family:"JetBrains Mono";font-weight:700;font-size:1.5rem;color:var(--primary);}
+  .m-tile .big small{font-family:"Manrope";font-weight:400;font-size:.8rem;color:var(--ink-soft);}
+  .m-tile .sub{font-family:"JetBrains Mono";font-size:.72rem;color:var(--good);margin-top:4px;}
+
+  .chart-card{background:var(--surface-1);border:1px solid var(--line);border-radius:var(--radius-l);padding:24px;box-shadow:var(--shadow);}
+  .chart-card-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-bottom:18px;}
+  .chart-card-head h4{font-size:1.02rem;color:var(--primary);}
+  .chart-card-head p{font-size:.8rem;color:var(--ink-soft);margin-top:3px;}
+  .chart-legend{display:flex;gap:16px;font-family:"JetBrains Mono";font-size:.7rem;color:var(--ink-soft);}
+  .chart-legend .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;}
+  .chart-x-labels{display:flex;justify-content:space-between;font-family:"JetBrains Mono";font-size:.72rem;color:var(--ink-soft);margin-top:10px;}
+  .chart-x-labels .lab{text-align:center;}
+  .chart-x-labels .lab b{display:block;color:var(--primary);font-weight:700;}
+  .chart-x-labels .lab.hi b{color:var(--secondary);}
+
+  .ai-verdict-box{display:flex;gap:12px;padding:16px;border-radius:var(--radius-m);background:var(--surface-2);border-left:4px solid var(--secondary);font-size:.87rem;color:var(--ink);}
+  .ai-verdict-box .material-symbols-outlined{color:var(--secondary);flex:none;}
+  .ai-verdict-box b{color:var(--primary);}
+  .pdf-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding-top:16px;border-top:1px solid var(--line);}
+  .pdf-row .left{display:flex;align-items:center;gap:8px;font-family:"JetBrains Mono";font-size:.74rem;color:var(--ink-soft);}
+  .btn-secondary{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:var(--radius-m);background:var(--secondary);color:var(--secondary-ink);border:none;font-family:"Manrope";font-weight:600;font-size:.83rem;cursor:pointer;}
+  .btn-secondary:hover{filter:brightness(1.1);}
+  .toast-note{font-family:"JetBrains Mono";font-size:.72rem;color:var(--secondary);opacity:0;transition:opacity .2s;}
+  .toast-note.show{opacity:1;}
+
+  /* ---------- analytics ---------- */
+  #analytics{background:var(--surface-1);border-top:1px solid var(--line);}
+  .bento{display:grid;grid-template-columns:1fr;gap:20px;}
+  @media (min-width:640px){.bento{grid-template-columns:1fr 1fr;}}
+  @media (min-width:1080px){.bento{grid-template-columns:repeat(4,1fr);}}
+  .d-card{padding:22px;border-radius:var(--radius-l);background:var(--surface-2);border:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between;gap:16px;transition:border-color .15s;}
+  .d-card:hover{border-color:var(--line-active);}
+  .d-head{display:flex;justify-content:space-between;align-items:flex-start;}
+  .d-name{font-size:1.1rem;color:var(--primary);}
+  .d-tag{font-family:"JetBrains Mono";font-size:.6rem;font-weight:700;padding:3px 7px;border-radius:5px;background:var(--primary);color:var(--primary-fixed);}
+  .d-price{font-family:"JetBrains Mono";font-weight:700;font-size:1.15rem;color:var(--secondary);margin-top:8px;}
+  .d-desc{font-size:.82rem;color:var(--ink-soft);margin-top:3px;}
+  .d-stats{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:7px;font-family:"JetBrains Mono";font-size:.76rem;}
+  .d-stats div{display:flex;justify-content:space-between;}
+  .d-stats .lbl{color:var(--ink-soft);}
+  .d-stats .val{font-weight:700;color:var(--ink);}
+  .d-stats .val.pos{color:var(--good);}
+  .d-card.dark{background:var(--primary);color:var(--primary-fixed);}
+  .d-card.dark .d-name{color:var(--primary-fixed);}
+  .d-card.dark .d-desc{color:color-mix(in srgb, var(--primary-fixed) 78%, transparent);}
+  .d-card.dark .d-stats{border-color:rgba(255,255,255,.18);}
+  .d-card.dark .d-stats .lbl{color:color-mix(in srgb, var(--primary-fixed) 65%, transparent);}
+  .d-card.dark .d-stats .val{color:var(--primary-fixed);}
+
+  /* ---------- admin ---------- */
+  #admin{background:var(--canvas);}
+  .admin-grid{display:grid;grid-template-columns:1fr;gap:24px;align-items:start;}
+  @media (min-width:900px){.admin-grid{grid-template-columns:1.1fr .9fr;}}
+  .admin-card{padding:26px;}
+  .a-field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px;}
+  .a-field label{font-family:"JetBrains Mono";font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);}
+  .a-field input,.a-field select,.a-field textarea{
+    font-family:"Manrope";font-size:.92rem;color:var(--ink);background:var(--surface-2);
+    border:1px solid var(--line);border-radius:var(--radius-s);padding:10px 12px;width:100%;
+  }
+  .a-field textarea{resize:vertical;min-height:82px;}
+  .a-row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media (max-width:520px){.a-row3{grid-template-columns:1fr 1fr;}}
+  .tag-check{display:flex;flex-wrap:wrap;gap:7px;}
+  .tag-check label{display:flex;align-items:center;gap:5px;font-family:"Manrope";font-weight:600;font-size:.76rem;color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:6px 11px;cursor:pointer;}
+  .tag-check input{accent-color:var(--primary);}
+  fieldset{border:none;padding:0;margin:0 0 16px;}
+  fieldset legend{font-family:"JetBrains Mono";font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:8px;padding:0;}
+  .admin-list h3{font-size:1.05rem;color:var(--primary);margin-bottom:12px;}
+  .admin-empty{font-size:.86rem;color:var(--ink-soft);background:var(--surface-2);border-radius:var(--radius-m);padding:18px;text-align:center;}
+  .admin-row{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;background:var(--surface-1);border:1px solid var(--line);border-radius:var(--radius-m);padding:10px;box-shadow:var(--shadow);margin-bottom:10px;}
+  .admin-row .thumb{width:52px;height:40px;border-radius:6px;background:linear-gradient(155deg, var(--surface-2), var(--primary));}
+  .admin-row .t{font-family:"Epilogue";font-weight:700;font-size:.86rem;}
+  .admin-row .m{font-family:"JetBrains Mono";font-size:.7rem;color:var(--ink-soft);}
+  .del-btn{font-family:"JetBrains Mono";font-size:.7rem;font-weight:700;color:var(--secondary);background:var(--secondary-fixed);border:none;border-radius:99px;padding:7px 12px;cursor:pointer;}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--primary);color:var(--primary-fixed);}
+  .foot-row{display:flex;flex-direction:column;gap:28px;padding-block:56px;}
+  @media (min-width:860px){.foot-row{flex-direction:row;justify-content:space-between;align-items:center;}}
+  .foot-brand{display:flex;align-items:center;gap:10px;}
+  .foot-brand .mark{width:32px;height:32px;border-radius:8px;background:var(--primary-fixed);color:var(--primary);display:flex;align-items:center;justify-content:center;font-family:"Epilogue";font-weight:800;}
+  .foot-brand .name{font-family:"Epilogue";font-weight:700;font-size:1.05rem;color:var(--primary-fixed);}
+  .foot-note{font-size:.84rem;color:color-mix(in srgb, var(--primary-fixed) 75%, transparent);max-width:52ch;margin-top:8px;}
+  .foot-links{display:flex;flex-wrap:wrap;gap:20px 28px;font-size:.86rem;}
+  .foot-links a{color:color-mix(in srgb, var(--primary-fixed) 80%, transparent);}
+  .foot-links a:hover{color:var(--primary-fixed);}
+</style>
+
+</head>
+<body>
+<div class="app-shell" id="app-shell">
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<aside class="app-sidebar" id="app-sidebar">
+  <div class="sb-top">
+    <div class="sb-brand"><span class="mark">R</span><span class="name">RealtorAI</span></div>
+    <button type="button" class="sb-close" id="sb-close" aria-label="Закрыть меню"><span class="material-symbols-outlined">close</span></button>
+  </div>
+  <button type="button" class="sb-newchat" id="sb-newchat"><span class="material-symbols-outlined">add</span><span>Новый чат</span></button>
+  <nav class="sb-nav" aria-label="Категории">
+    <button type="button" data-cat="rent"><span class="material-symbols-outlined">key</span><span>Аренда</span></button>
+    <button type="button" data-cat="newbuild"><span class="material-symbols-outlined">apartment</span><span>Новостройки</span><span class="cnt" id="cnt-newbuild">0</span></button>
+    <button type="button" data-cat="resale"><span class="material-symbols-outlined">home_work</span><span>Вторичка</span><span class="cnt" id="cnt-resale">0</span></button>
+    <button type="button" data-cat="favorites"><span class="material-symbols-outlined">favorite</span><span>Избранное</span><span class="cnt" id="cnt-favorites">0</span></button>
+  </nav>
+  <div class="sb-history">
+    <div class="sb-history-label">История чатов</div>
+    <div id="sb-history-list"></div>
+  </div>
+  <div class="sb-bottom">
+    <button type="button" data-view="chat" class="active"><span class="material-symbols-outlined">forum</span><span>ИИ-поиск и каталог</span></button>
+    <button type="button" data-view="calculator"><span class="material-symbols-outlined">calculate</span><span>Калькулятор инвестора</span></button>
+    <button type="button" data-view="analytics"><span class="material-symbols-outlined">bar_chart</span><span>Аналитика районов</span></button>
+    <button type="button" data-view="admin"><span class="material-symbols-outlined">real_estate_agent</span><span>Панель агента</span></button>
+    <button type="button" id="ai-settings-btn">
+      <span class="material-symbols-outlined">smart_toy</span><span>Настройки ИИ</span>
+      <span class="ai-status-dot" id="ai-status-dot" title="Живой ИИ выключен"></span>
+    </button>
+    <div class="sb-row2">
+      <button id="currency-toggle" type="button" aria-label="Переключить валюту">
+        <span class="u">USD</span><span style="color:var(--line-active)">/</span><span class="g">₾ GEL</span>
+      </button>
+      <button class="icon-btn" id="bookmarks-btn" title="Избранное" type="button">
+        <span class="material-symbols-outlined">bookmark</span>
+        <span class="badge-count" id="bookmarks-count">0</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<div class="modal-backdrop" id="ai-modal-backdrop" hidden>
+  <div class="modal" role="dialog" aria-label="Настройки ИИ">
+    <div class="modal-head">
+      <h3><span class="material-symbols-outlined">smart_toy</span>Настройки ИИ</h3>
+      <button type="button" class="yx-icon-btn" id="ai-modal-close" title="Закрыть"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <p class="modal-desc">Подключите модель Claude, чтобы общаться с RealtorAI живым ИИ — свободно, на любые темы недвижимости Грузии (и не только), с опорой на каталог объектов сайта.</p>
+    <div class="a-field">
+      <label for="ai-key-input">API-ключ Anthropic</label>
+      <input type="password" id="ai-key-input" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+      <p class="modal-hint" id="ai-key-hint">Ключ не задан — сейчас работает демо-эвристика.</p>
+    </div>
+    <div class="a-field">
+      <label for="ai-model-select">Модель</label>
+      <select id="ai-model-select">
+        <option value="claude-opus-5">Claude Opus 5 — самая умная</option>
+        <option value="claude-sonnet-5">Claude Sonnet 5 — баланс скорости и цены</option>
+        <option value="claude-haiku-4-5">Claude Haiku 4.5 — самая быстрая и дешёвая</option>
+      </select>
+    </div>
+    <p class="modal-hint">Ключ хранится только в этом браузере (localStorage) и отправляется напрямую в api.anthropic.com — ни на какой другой сервер. Не используйте личный ключ на странице, которой делитесь с посторонними, и не публикуйте её с сохранённым ключом.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-outline" id="ai-key-clear">Удалить ключ</button>
+      <button type="button" class="cta-primary" id="ai-key-save">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div class="app-main" id="app-main">
+<div class="mobile-bar">
+  <button type="button" class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Открыть меню"><span class="material-symbols-outlined">menu</span></button>
+  <span class="sb-brand"><span class="mark" style="width:26px;height:26px;font-size:.8rem;">R</span><span class="name" style="font-size:.92rem;">RealtorAI</span></span>
+</div>
+
+<div class="view active" id="view-chat">
+  <section class="hero" id="hero-browse">
+    <div class="hero-decor"><div class="dot-field"></div><div class="blob blob-a"></div><div class="blob blob-b"></div></div>
+    <div class="wrap hero-inner">
+      <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em;color:var(--secondary)">auto_awesome</span>Первый алгоритмический риэлтор Тбилиси</span>
+      <h1 class="headline">Подберу вам квартиру в Тбилиси <em>из всего каталога</em></h1>
+      <p class="lede">Опишите своими словами бюджет, стиль жизни, район или инвестиционную цель — RealtorAI мгновенно проанализирует каталог, цены и доходность объектов.</p>
+    </div>
+    <div class="wrap">
+      <div class="hero-box">
+        <textarea id="hero-input" rows="1" placeholder="Хочу двушку в Ваке до $100 000, для сдачи в аренду"></textarea>
+        <button class="send" id="hero-send" type="button" aria-label="Отправить"><span class="material-symbols-outlined">arrow_upward</span></button>
+      </div>
+      <div class="hero-chips">
+        <button type="button" id="hero-chip-guided">Подобрать по анкете</button>
+        <button type="button" id="hero-chip-sample">Новостройка с террасой у парка</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="listings">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em">apartment</span>Подборка RealtorAI</span>
+          <h2 style="margin-top:8px;" id="results-title">Все объекты в Тбилиси</h2>
+        </div>
+        <div class="status-line" id="results-status"></div>
+      </div>
+      <div class="results-grid" id="results-grid"></div>
+      <div class="show-more-row" id="show-more-row" hidden>
+        <button class="btn-outline" id="show-more-btn" type="button"><span id="show-more-label">Показать ещё варианты</span><span class="material-symbols-outlined">expand_more</span></button>
+      </div>
+    </div>
+    <div class="browse-card" id="browse-card" hidden></div>
+    <div class="browse-composer-wrap">
+      <div class="hero-box">
+        <textarea id="browse-input" rows="1" placeholder="Какую квартиру ищете?"></textarea>
+        <button class="send" id="browse-send" type="button" aria-label="Отправить"><span class="material-symbols-outlined">arrow_upward</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="chat-stage">
+    <div class="wrap">
+      <div class="yx-shell">
+        <div class="yx-chat">
+          <div class="yx-brand-row">
+            <span class="yx-brand-icon">R<span class="dot"></span></span>
+            <button class="yx-restart" id="yx-restart" type="button" title="Начать заново"><span class="material-symbols-outlined">restart_alt</span></button>
+          </div>
+          <div class="yx-thread" id="yx-thread"></div>
+          <div class="yx-actions">
+            <button type="button" id="yx-share" title="Поделиться"><span class="material-symbols-outlined">ios_share</span></button>
+            <button type="button" id="yx-like" title="Полезно"><span class="material-symbols-outlined">thumb_up</span></button>
+            <button type="button" id="yx-dislike" title="Не то"><span class="material-symbols-outlined">thumb_down</span></button>
+            <span class="toast-note" id="yx-toast"></span>
+          </div>
+          <button type="button" class="yx-more-chip" id="yx-restore-hidden" hidden>Показать <span id="yx-hidden-count">0</span> скрытых</button>
+          <div class="yx-composer">
+            <input id="yx-input" type="text" placeholder="Задайте свой вопрос" autocomplete="off">
+            <button class="send" id="yx-send" type="button" aria-label="Отправить"><span class="material-symbols-outlined">arrow_upward</span></button>
+          </div>
+        </div>
+        <div class="yx-map" id="yx-map">
+          <svg class="yx-roads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 30 Q30 20 55 32 T100 25" stroke="var(--map-road)" stroke-width="2.2" fill="none"/>
+            <path d="M0 58 Q35 50 60 60 T100 55" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+            <path d="M0 82 Q40 75 70 84 T100 80" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+            <path d="M18 0 Q26 40 20 100" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+            <path d="M52 0 Q46 45 58 100" stroke="var(--map-road)" stroke-width="2.2" fill="none"/>
+            <path d="M82 0 Q76 50 86 100" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
+          </svg>
+          <div class="park" style="width:120px;height:100px;top:10%;right:8%;"></div>
+          <div class="park" style="width:90px;height:80px;bottom:14%;left:30%;"></div>
+          <div id="yx-markers"></div>
+          <div class="yx-map-controls">
+            <button type="button" id="yx-zoom-in" aria-label="Приблизить">+</button>
+            <button type="button" id="yx-zoom-out" aria-label="Отдалить">–</button>
+            <button type="button" aria-label="Моё местоположение"><span class="material-symbols-outlined" style="font-size:1.1rem;">navigation</span></button>
+          </div>
+          <div class="yx-card" id="yx-card" hidden></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="view" id="view-calculator">
+  <section class="band" id="calculator">
+    <div class="wrap">
+      <div style="max-width:640px;margin-bottom:44px;">
+        <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em">analytics</span>Прогноз доходности и капитализации на 10 лет</span>
+        <h2 style="margin-top:10px;">Инвестиционный калькулятор RealtorAI</h2>
+        <p class="lede" style="margin:10px 0 0;text-align:left;">Задайте параметры сделки, чтобы рассчитать арендный поток, налоги и прирост капитала по объекту.</p>
+      </div>
+
+      <div class="calc-grid">
+        <div class="calc-left glass-card">
+          <div class="calc-head">
+            <h3>Параметры сделки</h3>
+            <span class="lot-chip" id="lot-chip">ЛОТ №1</span>
+          </div>
+
+          <div class="field">
+            <label for="c-select">Выбранный объект</label>
+            <select id="c-select"></select>
+          </div>
+
+          <div class="field-row2">
+            <div class="field">
+              <label for="c-price">Стоимость покупки</label>
+              <div class="money-input"><span>$</span><input id="c-price" type="number" min="1000" step="500"></div>
+            </div>
+            <div class="field">
+              <label for="c-furnish">Меблировка / сервис</label>
+              <div class="money-input"><span>$</span><input id="c-furnish" type="number" min="0" step="500" value="8000"></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Модель монетизации</label>
+            <div class="mode-switch" id="mode-switch">
+              <button type="button" data-mode="long">Долгосрок</button>
+              <button type="button" data-mode="short">Посуточно</button>
+              <button type="button" data-mode="hybrid" class="active">Гибридная ★</button>
+            </div>
+            <p class="mode-caption">*Гибрид: посуточная аренда с мая по октябрь, долгосрочный контракт зимой.</p>
+          </div>
+
+          <div class="field">
+            <div class="slider-head"><label>Горизонт владения</label><span class="val" id="horizon-val">5 лет</span></div>
+            <input type="range" id="horizon" min="1" max="10" value="5">
+            <div class="slider-ticks"><span>1</span><span>3</span><span class="on">5</span><span>7</span><span>10</span></div>
+          </div>
+
+          <div class="assump-rows">
+            <div class="assump-row"><span>Налог на аренду в Грузии</span><span class="v">5%</span></div>
+            <div class="assump-row"><span>Управление под ключ</span><span class="v" id="mgmt-fee-val">15%</span></div>
+            <div class="assump-row"><span>Расчётная загрузка посуточно</span><span class="v" id="occ-val">55%</span></div>
+          </div>
+
+          <button class="recalc-btn" id="recalc-btn" type="button"><span class="material-symbols-outlined">refresh</span><span>Пересчитать модель</span></button>
+        </div>
+
+        <div class="calc-right">
+          <div class="metric-tiles">
+            <div class="m-tile">
+              <div class="top"><span class="label-caps">Чистый денежный поток</span><span class="material-symbols-outlined">payments</span></div>
+              <div class="big" id="m-cashflow">$0<small>/мес</small></div>
+              <div class="sub" id="m-cashflow-sub">—</div>
+            </div>
+            <div class="m-tile">
+              <div class="top"><span class="label-caps">Совокупный IRR</span><span class="material-symbols-outlined">trending_up</span></div>
+              <div class="big" id="m-irr" style="color:var(--secondary);">0%<small>/год</small></div>
+              <div class="sub" style="color:var(--ink-soft);">С учётом роста актива и аренды</div>
+            </div>
+            <div class="m-tile">
+              <div class="top"><span class="label-caps">Окупаемость</span><span class="material-symbols-outlined">history_toggle_off</span></div>
+              <div class="big" id="m-payback">0 <small>лет</small></div>
+              <div class="sub">Простой срок возврата капитала</div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-head">
+              <div>
+                <h4>Прогноз стоимости и накопленной аренды</h4>
+                <p>Модель на основе доходности и роста цены выбранного объекта</p>
+              </div>
+              <div class="chart-legend">
+                <span><span class="sw" style="background:var(--primary)"></span>Стоимость квартиры</span>
+                <span><span class="sw" style="background:var(--secondary)"></span>Накопленная аренда</span>
+              </div>
+            </div>
+            <div id="chart-holder"></div>
+            <div class="chart-x-labels" id="chart-x-labels"></div>
+          </div>
+
+          <div class="ai-verdict-box">
+            <span class="material-symbols-outlined">insights</span>
+            <div id="ai-verdict-text"><b>Стратегический вердикт RealtorAI:</b> —</div>
+          </div>
+
+          <div class="chart-card" style="padding:16px 20px;">
+            <div class="pdf-row" style="border:none;padding:0;">
+              <div class="left"><span class="material-symbols-outlined">picture_as_pdf</span><span>PDF-проспект: финансовый аудит объекта</span></div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span class="toast-note" id="pdf-toast">Демо: PDF не генерируется в макете</span>
+                <button class="btn-secondary" id="pdf-btn" type="button"><span class="material-symbols-outlined">download</span><span>Скачать меморандум</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="view" id="view-analytics">
+  <section class="band" id="analytics">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em">bar_chart</span>Ситуация на рынке Тбилиси</span>
+          <h2 style="margin-top:8px;">Аналитика районов от RealtorAI</h2>
+        </div>
+        <p class="section-head desc" style="margin:0;max-width:38ch;">Средние показатели рассчитаны по объектам каталога RealtorAI в каждом районе.</p>
+      </div>
+      <div class="bento" id="analytics-grid"></div>
+    </div>
+  </section>
+</div>
+
+<div class="view" id="view-admin">
+  <section class="band" id="admin">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em">real_estate_agent</span>Панель агента</span>
+          <h2 style="margin-top:8px;">Добавить объект в каталог</h2>
+        </div>
+        <p class="section-head desc" style="margin:0;">Новый объект сразу появится в подборке, калькуляторе и аналитике. Хранится в этом браузере.</p>
+      </div>
+
+      <div class="admin-grid">
+        <div class="admin-card glass-card">
+          <form id="admin-form">
+            <div class="a-field">
+              <label for="f-title">Название объявления</label>
+              <input type="text" id="f-title" required placeholder="Например: Двушка с террасой в Ваке">
+            </div>
+            <div class="a-row3">
+              <div class="a-field">
+                <label for="f-district">Район</label>
+                <select id="f-district">
+                  <option>Ваке</option><option>Вера</option><option>Сабуртало</option>
+                  <option>Мтацминда</option><option>Сололаки</option>
+                  <option>Чугурети</option><option>Дигоми</option><option>Глдани</option>
+                </select>
+              </div>
+              <div class="a-field">
+                <label for="f-rooms">Комнаты</label>
+                <select id="f-rooms">
+                  <option value="0">Студия</option>
+                  <option value="1">1</option><option value="2" selected>2</option>
+                  <option value="3">3</option><option value="4">4</option>
+                </select>
+              </div>
+              <div class="a-field">
+                <label for="f-area">Площадь, м²</label>
+                <input type="number" id="f-area" min="12" step="1" required placeholder="58">
+              </div>
+            </div>
+            <div class="a-field">
+              <label for="f-address">Адрес (необязательно)</label>
+              <input type="text" id="f-address" placeholder="ул. Тициана Табидзе">
+            </div>
+            <div class="a-row3">
+              <div class="a-field"><label for="f-floor">Этаж</label><input type="number" id="f-floor" min="1" step="1" placeholder="5"></div>
+              <div class="a-field"><label for="f-floors">Этажей в доме</label><input type="number" id="f-floors" min="1" step="1" placeholder="9"></div>
+              <div class="a-field"><label for="f-year">Год сдачи</label><input type="number" id="f-year" min="1900" max="2030" placeholder="2022"></div>
+            </div>
+            <div class="a-field"><label for="f-price">Цена, $</label><input type="number" id="f-price" min="1000" step="500" required placeholder="98000"></div>
+            <div class="a-field"><label for="f-desc">Описание / вердикт для покупателя</label><textarea id="f-desc" placeholder="Что вокруг, что внутри, чем интересен объект"></textarea></div>
+            <fieldset>
+              <legend>Особенности</legend>
+              <div class="tag-check" id="f-tags">
+                <label><input type="checkbox" value="вид на горы"><span>вид на горы</span></label>
+                <label><input type="checkbox" value="вид на реку"><span>вид на реку</span></label>
+                <label><input type="checkbox" value="у метро"><span>у метро</span></label>
+                <label><input type="checkbox" value="парковка"><span>парковка</span></label>
+                <label><input type="checkbox" value="терраса"><span>терраса</span></label>
+                <label><input type="checkbox" value="для семьи"><span>для семьи</span></label>
+                <label><input type="checkbox" value="тихий район"><span>тихий район</span></label>
+                <label><input type="checkbox" value="новостройка"><span>новостройка</span></label>
+                <label><input type="checkbox" value="исторический дом"><span>исторический дом</span></label>
+                <label><input type="checkbox" value="посуточная аренда"><span>посуточная аренда</span></label>
+                <label><input type="checkbox" value="для студентов"><span>для студентов</span></label>
+                <label><input type="checkbox" value="премиум-класс"><span>премиум-класс</span></label>
+                <label><input type="checkbox" value="бюджетный вариант"><span>бюджетный вариант</span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Параметры для расчёта доходности</legend>
+              <div class="a-row3">
+                <div class="a-field"><label for="f-yield">Доходность, %/год</label><input type="number" id="f-yield" min="1" max="15" step="0.1" value="6"></div>
+                <div class="a-field"><label for="f-daily">Тариф/сутки, $</label><input type="number" id="f-daily" min="10" step="1" value="50"></div>
+                <div class="a-field"><label for="f-occ">Загрузка, %</label><input type="number" id="f-occ" min="10" max="95" step="1" value="55"></div>
+              </div>
+              <div class="a-field"><label for="f-growth">Рост цены, %/год</label><input type="number" id="f-growth" min="0" max="20" step="0.1" value="6"></div>
+            </fieldset>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <button type="submit" class="cta-primary">Добавить объект</button>
+              <span class="toast-note" id="admin-toast" style="color:var(--good);">Объект добавлен</span>
+            </div>
+          </form>
+        </div>
+        <div class="admin-list">
+          <h3>Добавленные вами объекты</h3>
+          <div id="admin-items"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap foot-row">
+    <div>
+      <div class="foot-brand"><span class="mark">R</span><span class="name">RealtorAI</span></div>
+      <p class="foot-note">© 2026 RealtorAI Real Estate Intelligence. Тбилиси, Грузия. Прототип продукта — объявления и метрики вымышлены для демонстрации, не инвестиционная рекомендация.</p>
+    </div>
+  </div>
+</footer>
+</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var GEL_RATE = 2.70;
+  var TAX = 0.05;
+  var LS_KEY = "realtorai_custom_listings_v2";
+  var LS_SAVED = "realtorai_saved_v1";
+  var LS_AI_KEY = "realtorai_ai_key_v1";
+  var LS_AI_MODEL = "realtorai_ai_model_v1";
+  var AI_MODELS = ["claude-opus-5","claude-sonnet-5","claude-haiku-4-5"];
+
+  function loadAIKey(){ try{ return localStorage.getItem(LS_AI_KEY) || ""; }catch(e){ return ""; } }
+  function saveAIKey(key){ try{ if (key) localStorage.setItem(LS_AI_KEY, key); else localStorage.removeItem(LS_AI_KEY); }catch(e){} }
+  function loadAIModel(){ try{ var m = localStorage.getItem(LS_AI_MODEL); return AI_MODELS.indexOf(m)!==-1 ? m : AI_MODELS[0]; }catch(e){ return AI_MODELS[0]; } }
+  function saveAIModel(model){ try{ localStorage.setItem(LS_AI_MODEL, model); }catch(e){} }
+
+  function fmtUSD(n){ return "$" + Math.round(n).toLocaleString("en-US"); }
+  function fmtGEL(usd){ return Math.round(usd*GEL_RATE).toLocaleString("ru-RU") + " ₾"; }
+  function pct(n){ return (Math.round(n*1000)/10).toString().replace(".", ",") + "%"; }
+  function hashInt(str){ var h=0; for (var i=0;i<str.length;i++){ h=(h*31+str.charCodeAt(i))>>>0; } return h; }
+  function priceRow(usd){ return '<span class="price-main"><span class="price-usd">'+fmtUSD(usd)+'</span><span class="price-gel">≈ '+fmtGEL(usd)+'</span></span>'; }
+
+  /* ---------------- data ---------------- */
+  var BASE_APTS = [
+    { id:"vake-studio", title:"Студия у Ваке-парка", district:"Ваке", address:"проспект Чавчавадзе, у парка", rooms:0, roomsLabel:"Студия",
+      area:38, floor:4, floorsTotal:9, year:2021, price:62000, rating:4.7,
+      tags:["новостройка","тихий район","для студентов","бюджетный вариант"],
+      desc:"Компактная студия в новом доме в пяти минутах от Ваке-парка. Свежий ремонт застройщика, панорамное окно в гостиной, тихий двор без сквозного проезда.",
+      yieldLong:0.065, dailyRate:35, occ:0.60, growth:0.06 },
+    { id:"mtatsminda-2r", title:"Квартира с видом на горы", district:"Мтацминда", address:"переулок Бесики, склон Мтацминды", rooms:2, roomsLabel:"2 комнаты",
+      area:64, floor:6, floorsTotal:6, year:1985, price:98000, rating:4.8,
+      tags:["вид на горы","исторический дом","тихий район"],
+      desc:"Последний этаж старого дома с отремонтированными в 2023 году интерьерами. Из окон гостиной и спальни — панорама на хребет Мтацминды и канатную дорогу.",
+      yieldLong:0.058, dailyRate:55, occ:0.55, growth:0.07 },
+    { id:"saburtalo-3r", title:"Трёхкомнатная у метро Делиси", district:"Сабуртало", address:"проспект Важа-Пшавела, у м. Делиси", rooms:3, roomsLabel:"3 комнаты",
+      area:92, floor:9, floorsTotal:16, year:2019, price:145000, rating:4.6,
+      tags:["у метро","новостройка","парковка","для семьи"],
+      desc:"Семейная квартира в комплексе с закрытым двором и детской площадкой. Две минуты пешком до метро, панорамное остекление, место на подземном паркинге в цене.",
+      yieldLong:0.062, dailyRate:70, occ:0.58, growth:0.065 },
+    { id:"sololaki-old", title:"Лофт с террасой в историческом Сололаки", district:"Сололаки", address:"улица Иоанэ Шавтели", rooms:2, roomsLabel:"2 комнаты",
+      area:70, floor:2, floorsTotal:3, year:1901, price:110000, rating:4.9,
+      tags:["исторический дом","посуточная аренда"],
+      desc:"Резной балкон, высокие потолки 3,6 м и вид на купола серных бань. Туристический район с самым высоким спросом на посуточную аренду в городе.",
+      yieldLong:0.050, dailyRate:85, occ:0.70, growth:0.08 },
+    { id:"chugureti-1r", title:"Однушка у Марджанишвили", district:"Чугурети", address:"улица Кетеван Цамебули, у м. Марджанишвили", rooms:1, roomsLabel:"1 комната",
+      area:45, floor:5, floorsTotal:5, year:2015, price:58000, rating:4.5,
+      tags:["у метро","бюджетный вариант","для студентов"],
+      desc:"Бюджетный вход в рынок: развитая инфраструктура района, метро в шаговой доступности, устойчивый спрос со стороны студентов и молодых специалистов.",
+      yieldLong:0.071, dailyRate:40, occ:0.55, growth:0.05 },
+    { id:"vake-family", title:"Семейная квартира в Ваке", district:"Ваке", address:"улица Тициана Табидзе", rooms:4, roomsLabel:"4 комнаты",
+      area:130, floor:3, floorsTotal:8, year:2020, price:260000, rating:4.8,
+      tags:["для семьи","парковка","тихий район"],
+      desc:"Просторная квартира с двумя санузлами и кладовой рядом со школой и садом. Паркинг включён в стоимость, двор закрытый.",
+      yieldLong:0.052, dailyRate:120, occ:0.45, growth:0.06 },
+    { id:"digomi-newbuild", title:"Квартира с террасой в Дигоми", district:"Дигоми", address:"мкр. Дигоми Массив, новый квартал", rooms:2, roomsLabel:"2 комнаты",
+      area:58, floor:12, floorsTotal:14, year:2024, price:54000, rating:4.4,
+      tags:["терраса","бюджетный вариант","для инвестиций","новостройка"],
+      desc:"Развивающийся район с активной застройкой и растущей инфраструктурой. Собственная терраса 8 м², низкий порог входа — вариант для покупки на старте роста района.",
+      yieldLong:0.068, dailyRate:38, occ:0.50, growth:0.09 },
+    { id:"vera-penthouse", title:"Пентхаус на Куре", district:"Вера", address:"набережная Кирилла Лорткипанидзе", rooms:3, roomsLabel:"3 комнаты",
+      area:115, floor:14, floorsTotal:14, year:2022, price:210000, rating:4.9,
+      tags:["премиум-класс","вид на реку","терраса","посуточная аренда"],
+      desc:"Верхний этаж премиального комплекса: панорамная терраса с видом на Куру и мосты, консьерж-сервис, самый высокий тариф посуточной аренды в подборке.",
+      yieldLong:0.048, dailyRate:150, occ:0.65, growth:0.065 }
+  ];
+
+  function loadCustom(){ try{ var r=localStorage.getItem(LS_KEY); return r?JSON.parse(r):[]; }catch(e){ return []; } }
+  function saveCustom(list){ try{ localStorage.setItem(LS_KEY, JSON.stringify(list)); }catch(e){} }
+  function loadSaved(){ try{ var r=localStorage.getItem(LS_SAVED); return r?JSON.parse(r):[]; }catch(e){ return []; } }
+  function saveSaved(list){ try{ localStorage.setItem(LS_SAVED, JSON.stringify(list)); }catch(e){} }
+  var CUSTOM = loadCustom();
+  var SAVED = loadSaved();
+  function allApts(){ return BASE_APTS.concat(CUSTOM); }
+  function roomsLabelFor(n){ if(n===0) return "Студия"; var f={1:"1 комната",2:"2 комнаты",3:"3 комнаты",4:"4 комнаты"}; return f[n]||(n+" комнат"); }
+
+  function priceAt(a, years){ return a.price * Math.pow(1+a.growth, years); }
+  function monthlyLong(a){ return a.price*a.yieldLong/12*(1-TAX); }
+  function monthlyShortGross(a){ return a.dailyRate*365*a.occ/12; }
+  function monthlyShortNet(a){ return monthlyShortGross(a)*(1-TAX-0.15); }
+  function monthlyHybrid(a){ return (monthlyShortNet(a)*6 + monthlyLong(a)*6)/12; }
+  function monthlyByMode(a, mode){ return mode==="short"?monthlyShortNet(a):mode==="hybrid"?monthlyHybrid(a):monthlyLong(a); }
+  function breakEvenYears(a){ return a.price / (monthlyLong(a)*12); }
+
+  /* ---------------- live AI (Claude API, direct from the browser) ---------------- */
+  var SHOW_LISTINGS_TOOL = {
+    name: "show_listings",
+    description: "Показать пользователю эти объекты каталога Тбилиси на карте/в подборке сайта. Вызывай только с id из каталога, который дан в системном промпте. Используй, когда рекомендуешь или упоминаешь конкретные объекты.",
+    input_schema: {
+      type: "object",
+      properties: {
+        ids: { type: "array", items: { type: "string" }, description: "id объектов из каталога, самые релевантные — первыми" }
+      },
+      required: ["ids"]
+    }
+  };
+  var aiMessages = [];
+
+  function catalogForAI(){
+    return allApts().map(function(a){
+      return {
+        id: a.id, title: a.title, district: a.district, address: a.address || null,
+        rooms: a.rooms, roomsLabel: a.roomsLabel, area: a.area, floor: a.floor, floorsTotal: a.floorsTotal, year: a.year,
+        priceUSD: Math.round(a.price), pricePerM2USD: Math.round(a.price/a.area),
+        tags: a.tags, description: a.desc,
+        rentLongUSDPerMonth: Math.round(monthlyLong(a)),
+        capRatePct: Math.round(a.yieldLong*1000)/10,
+        dailyRateUSD: a.dailyRate, occupancyPct: Math.round(a.occ*100),
+        priceGrowthPctPerYear: Math.round(a.growth*1000)/10,
+        breakEvenYears: Math.round(breakEvenYears(a)*10)/10
+      };
+    });
+  }
+
+  function buildSystemPrompt(){
+    return (
+      "Ты — RealtorAI, ИИ-риэлтор сайта RealtorAI (мокап). Помогаешь людям с недвижимостью Тбилиси и Грузии в целом: " +
+      "подбираешь квартиры из каталога, объясняешь инвестиционные метрики (доходность аренды, окупаемость, рост цены), " +
+      "и свободно отвечаешь на смежные и общие вопросы — аренда, ВНЖ/резидентство, налоги, процесс покупки, районы, банки, визы и так далее, " +
+      "а также можешь просто поддержать разговор на другие темы, если пользователь спросит. Отвечай на языке вопроса (по умолчанию по-русски), " +
+      "дружелюбно и по делу, без воды. Держи ответы компактными (обычно 2-6 предложений или короткий список) — это чат в боковой панели, не эссе.\n\n" +
+      "Ниже — актуальный каталог объектов сайта в JSON (цены в USD, все объекты и цифры вымышлены для демо — честно говори об этом, если спросят): " +
+      "если рекомендуешь или упоминаешь конкретные объекты из этого списка, вызови инструмент show_listings с их id, чтобы сайт показал их пользователю. " +
+      "Не выдумывай объекты и id, которых нет в списке; если каталог не подходит под запрос — так и скажи и посоветуй, что изменить в критериях.\n\n" +
+      JSON.stringify(catalogForAI())
+    );
+  }
+
+  function aiErrorMessage(status, body){
+    if (status === 401) return "Неверный API-ключ Claude. Проверьте его в настройках ИИ.";
+    if (status === 429) return "Превышен лимит запросов к Claude API. Попробуйте через минуту.";
+    if (status === 400 && body && /credit|billing/i.test(body)) return "Проблема с оплатой на аккаунте Anthropic — проверьте баланс.";
+    if (status) return "Claude API вернул ошибку " + status + ". " + (body ? String(body).slice(0,180) : "");
+    return "Не удалось связаться с api.anthropic.com — проверьте соединение и ключ.";
+  }
+
+  function anthropicRequest(model, messages, key){
+    var body = {
+      model: model,
+      max_tokens: 1024,
+      system: buildSystemPrompt(),
+      tools: [SHOW_LISTINGS_TOOL],
+      messages: messages
+    };
+    if (model !== "claude-haiku-4-5") body.output_config = { effort: "low" };
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify(body)
+    }).then(function(res){
+      return res.text().then(function(text){
+        var data = null; try{ data = JSON.parse(text); }catch(e){}
+        if (!res.ok){
+          var msg = (data && data.error && data.error.message) || text;
+          throw new Error(aiErrorMessage(res.status, msg));
+        }
+        return data;
+      });
+    });
+  }
+
+  function callClaudeAPI(userText){
+    var key = loadAIKey();
+    var model = loadAIModel();
+    aiMessages.push({ role: "user", content: userText });
+    var shownIds = [];
+    function loop(guard){
+      return anthropicRequest(model, aiMessages, key).then(function(response){
+        if (response.stop_reason === "tool_use" && guard < 3){
+          aiMessages.push({ role: "assistant", content: response.content });
+          var toolResults = [];
+          response.content.forEach(function(block){
+            if (block.type !== "tool_use") return;
+            if (block.name === "show_listings"){
+              var ids = (block.input && block.input.ids) || [];
+              shownIds = shownIds.concat(ids);
+              toolResults.push({ type: "tool_result", tool_use_id: block.id, content: "Показано пользователю: " + ids.length + " объект(ов)." });
+            } else {
+              toolResults.push({ type: "tool_result", tool_use_id: block.id, content: "Неизвестный инструмент.", is_error: true });
+            }
+          });
+          aiMessages.push({ role: "user", content: toolResults });
+          return loop(guard + 1);
+        }
+        var textParts = response.content.filter(function(b){ return b.type==="text"; }).map(function(b){ return b.text; });
+        aiMessages.push({ role: "assistant", content: response.content });
+        return { text: textParts.join("\n\n").trim() || "…", shownIds: shownIds };
+      });
+    }
+    return loop(0);
+  }
+
+  /* ---------------- media illustration ---------------- */
+  function mediaHTML(a, opts){
+    opts = opts || {};
+    var seed = hashInt(a.id);
+    var bars = [];
+    for (var i=0;i<9;i++){
+      var h = 20 + ((seed >> (i*3 % 24)) & 63) % 55;
+      bars.push('<i style="height:'+h+'%;width:'+(100/9-1.2)+'%"></i>');
+    }
+    var badge = badgeFor(a);
+    return (
+      '<div class="r-media">' +
+        '<div class="grain"></div>' +
+        '<div class="skyline">' + bars.join("") + '</div>' +
+        '<div class="horizon"></div>' +
+        (opts.badgeRow === false ? '' :
+        '<div class="badge-row">' +
+          '<div class="badge-tags">' +
+            '<span class="b-district">' + a.district.toUpperCase() + (opts.showSub !== false && a.address ? ' • ' + a.address.split(",")[0].toUpperCase() : '') + '</span>' +
+            (badge ? '<span class="b-sub" style="background:'+badge.bg+';color:'+badge.ink+'">'+badge.text+'</span>' : '') +
+          '</div>' +
+          (opts.metric !== false ? metricBadgeHTML(a) : '') +
+        '</div>') +
+        (opts.match != null ? '<span class="match-pill"><span class="dot"></span>AI Совпадение: ' + opts.match + '%</span>' : '') +
+        (a.custom ? '<span class="new-flag">Новое</span>' : '') +
+        (opts.save !== false ? '<button type="button" class="save-btn' + (SAVED.indexOf(a.id)!==-1?' on':'') + '" data-save="' + a.id + '"><span class="material-symbols-outlined msi' + (SAVED.indexOf(a.id)!==-1?' on':'') + '">favorite</span></button>' : '') +
+        (opts.chip ? '<span class="metric-chip">' + opts.chip + '</span>' : '') +
+      '</div>'
+    );
+  }
+  function chipHTML(a){
+    if (a.yieldLong >= 0.06) return '<span class="material-symbols-outlined">bolt</span>' + pct(a.yieldLong) + ' доходность';
+    if (a.growth >= 0.07) return '<span class="material-symbols-outlined">trending_up</span>+' + pct(priceAt(a,3)/a.price-1) + ' за 3 года';
+    return '<span class="material-symbols-outlined">timelapse</span>' + breakEvenYears(a).toFixed(1) + ' лет окуп.';
+  }
+  function badgeFor(a){
+    if (a.tags.indexOf("посуточная аренда") !== -1) return {text:"AIRBNB PRIME", bg:"var(--secondary)", ink:"#fff"};
+    if (a.tags.indexOf("исторический дом") !== -1) return {text:"HERITAGE", bg:"var(--primary-fixed)", ink:"var(--primary-fixed-ink)"};
+    if (a.tags.indexOf("премиум-класс") !== -1) return {text:"БИЗНЕС-КЛАСС", bg:"var(--primary)", ink:"var(--primary-fixed)"};
+    if (a.tags.indexOf("для инвестиций") !== -1) return {text:"РЕДКИЙ ЛОТ", bg:"var(--tertiary-fixed)", ink:"var(--tertiary-fixed-ink)"};
+    return {text:"ПРОВЕРЕНО ИИ", bg:"var(--surface-2)", ink:"var(--ink-soft)"};
+  }
+  function metricBadgeHTML(a){
+    var icon, label, value;
+    if (a.yieldLong >= 0.06){ icon="bolt"; label="Cap Rate"; value=pct(a.yieldLong); }
+    else if (a.growth >= 0.07){ icon="trending_up"; label="Рост 3 года"; value="+"+pct(priceAt(a,3)/a.price-1); }
+    else { icon="timelapse"; label="Окупаемость"; value=breakEvenYears(a).toFixed(1)+" лет"; }
+    return '<span class="b-metric"><span class="material-symbols-outlined">'+icon+'</span><span>'+label+' '+value+'</span></span>';
+  }
+
+  /* ---------------- search engine ---------------- */
+  var FEATURES = [
+    {re:/вид на гор/i, tag:"вид на горы"}, {re:/вид на (реку|куру)/i, tag:"вид на реку"},
+    {re:/у метро|рядом с метро|возле метро|метро/i, tag:"у метро"}, {re:/парков/i, tag:"парковка"},
+    {re:/терасс|террас/i, tag:"терраса"}, {re:/семь|дет[ейяи]|школ/i, tag:"для семьи"},
+    {re:/тих/i, tag:"тихий район"}, {re:/новостро/i, tag:"новостройка"},
+    {re:/истор|сололак/i, tag:"исторический дом"}, {re:/посуточн|airbnb|туристов|туристич/i, tag:"посуточная аренда"},
+    {re:/студент/i, tag:"для студентов"}, {re:/люкс|премиум|пентхаус/i, tag:"премиум-класс"},
+    {re:/бюджет|недорог|дешев/i, tag:"бюджетный вариант"}
+  ];
+  var DISTRICTS = ["Ваке","Вера","Сабуртало","Мтацминда","Сололаки","Чугурети","Дигоми","Глдани"];
+
+  function parseBudget(text){
+    var max=null, min=null;
+    var m = text.match(/(?:до|не дороже|в пределах|бюджет(?: до)?)\D{0,6}([\d\s]{3,9})/i);
+    if (m){ max = parseInt(m[1].replace(/\s/g,""),10); }
+    var m2 = text.match(/от\D{0,6}([\d\s]{3,9})/i);
+    if (m2){ min = parseInt(m2[1].replace(/\s/g,""),10); }
+    return {max:max, min:min, maxMatch:m?m[0]:null};
+  }
+  function parseRooms(text){
+    if (/студи/i.test(text)) return 0;
+    if (/однушк|1[\s-]?(комнат|к\.)/i.test(text)) return 1;
+    if (/двушк|2[\s-]?(комнат|к\.)/i.test(text)) return 2;
+    if (/трёшк|трешк|3[\s-]?(комнат|к\.)/i.test(text)) return 3;
+    if (/4[\s-]?(комнат|к\.)/i.test(text)) return 4;
+    return null;
+  }
+  function analyzeQuery(text){
+    var rooms = parseRooms(text);
+    var budget = parseBudget(text);
+    var district = DISTRICTS.find(function(d){ return text.toLowerCase().indexOf(d.toLowerCase()) !== -1; }) || null;
+    var features = FEATURES.filter(function(f){ return f.re.test(text); }).map(function(f){ return f.tag; });
+    var investing = /инвест/i.test(text);
+    var shortTerm = /посуточн|airbnb/i.test(text);
+    return {rooms:rooms, budget:budget, district:district, features:features, investing:investing, shortTerm:shortTerm};
+  }
+  function filterCount(q){
+    return (q.rooms!==null?1:0)+(q.district?1:0)+(q.budget.max?1:0)+q.features.length+(q.investing?1:0)+(q.shortTerm?1:0);
+  }
+  function scoreApt(a, q){
+    var score=0; var why=[];
+    if (q.rooms!==null && a.rooms===q.rooms){ score+=26; why.push(q.rooms===0?"студия":q.rooms+"-комн."); }
+    if (q.district && a.district===q.district){ score+=24; why.push(q.district); }
+    if (q.budget.max){
+      if (a.price<=q.budget.max) score+=20;
+      else if (a.price<=q.budget.max*1.1) score+=4;
+      else score-=40;
+    }
+    if (q.budget.min && a.price<q.budget.min) score-=10;
+    q.features.forEach(function(f){ if (a.tags.indexOf(f)!==-1){ score+=16; why.push(f); } });
+    if (q.investing){ score += a.yieldLong*260 + a.growth*160; if (why.indexOf("для инвестиций")===-1 && a.tags.indexOf("для инвестиций")!==-1) why.push("для инвестиций"); }
+    if (q.shortTerm){ score += (a.dailyRate*a.occ)/6; if (a.tags.indexOf("посуточная аренда")!==-1 && why.indexOf("посуточная аренда")===-1) why.push("посуточная аренда"); }
+    score += a.rating*2;
+    return {score:score, why:why};
+  }
+  /* ---------------- category filters (sidebar nav) ---------------- */
+  var CATS = {
+    rent:      { label:"Аренда в Тбилиси",        note:"Показана расчётная аренда в месяц (долгосрочный контракт)." },
+    newbuild:  { label:"Новостройки Тбилиси",     note:"Объекты с пометкой «новостройка» в описании." },
+    resale:    { label:"Вторичный рынок Тбилиси", note:"Объекты вне новостроек — вторичное жильё." },
+    favorites: { label:"Избранное",               note:"Объекты, сохранённые вами через значок закладки." }
+  };
+  var state = { category:null, chatMode:false };
+
+  function isNewBuild(a){ return a.tags.indexOf("новостройка") !== -1; }
+  function categoryList(cat){
+    var all = allApts();
+    if (cat==="newbuild") return all.filter(isNewBuild);
+    if (cat==="resale") return all.filter(function(a){ return !isNewBuild(a); });
+    if (cat==="favorites") return all.filter(function(a){ return SAVED.indexOf(a.id)!==-1; });
+    return all.slice();
+  }
+  function updateCategoryCounts(){
+    document.getElementById("cnt-newbuild").textContent = categoryList("newbuild").length;
+    document.getElementById("cnt-resale").textContent = categoryList("resale").length;
+    updateFavCount();
+  }
+  function updateFavCount(){
+    document.getElementById("cnt-favorites").textContent = SAVED.length;
+    document.getElementById("bookmarks-count").textContent = SAVED.length;
+  }
+  function clearCategoryActive(){
+    state.category = null;
+    document.querySelectorAll(".sb-nav button[data-cat]").forEach(function(b){ b.classList.remove("active"); });
+  }
+  function clearHistoryActive(){
+    document.querySelectorAll(".sb-hist-item").forEach(function(b){ b.classList.remove("active"); });
+  }
+  function enterChatMode(){
+    state.chatMode = true;
+    document.body.classList.add("chat-mode");
+  }
+  function exitChatMode(){
+    state.chatMode = false;
+    document.body.classList.remove("chat-mode");
+    clearCategoryActive();
+    clearHistoryActive();
+    threadEl().innerHTML = "";
+    aiMessages = [];
+    yx.hiddenIds = []; yx.investing = null; yx.rentMode = false; yx.results = [];
+    updateHiddenChip();
+    closeCard(document.getElementById("yx-card"));
+    closeCard(document.getElementById("browse-card"));
+  }
+  function setCategory(cat){
+    enterChatMode();
+    state.category = cat;
+    yx.rentMode = (cat==="rent");
+    document.querySelectorAll(".sb-nav button[data-cat]").forEach(function(b){ b.classList.toggle("active", b.dataset.cat===cat); });
+    clearHistoryActive();
+    var cfg = CATS[cat];
+    var list = categoryList(cat);
+    threadEl().innerHTML = "";
+    aiMessages = [];
+    yx.hiddenIds = [];
+    updateHiddenChip();
+    renderAiBlock({
+      title: cfg.label,
+      breakdown: (list.length ? list.length + " объект" + (list.length===1?"":list.length<5?"а":"ов") + " по этому фильтру." : "Пока нет объектов по этому фильтру.") + " " + cfg.note
+    });
+    yx.results = list;
+    renderMap(list);
+    selectListing(list[0] ? list[0].id : null);
+  }
+
+  var catalogVisible = 6;
+  var SUGGEST_PROMPTS = [
+    { text:"Двушка у метро Марджанишвили, до $70 000", query:"Двушка у метро Марджанишвили до 70000" },
+    { text:"Квартира с видом на горы в Мтацминде", query:"Квартира с видом на горы в Мтацминде" },
+    { text:"Новостройка с террасой для инвестиций", query:"Новостройка с террасой для инвестиций" },
+    { text:"Семейная квартира рядом со школой в Ваке", query:"Семейная квартира рядом со школой в Ваке" }
+  ];
+  function cardHTML(a){
+    var subtitle = a.roomsLabel + ' • ' + a.area + ' м²' + (a.floor ? ' • ' + a.floor + '/' + (a.floorsTotal||a.floor) + ' этаж' : '');
+    return (
+      '<article class="r-card" data-listing-id="'+a.id+'">' +
+        mediaHTML(a, {badgeRow:false, match:null, chip:chipHTML(a)}) +
+        '<div class="r-mini">' +
+          '<div class="price-row">' + priceRow(a.price) + '</div>' +
+          '<div class="r-title">' + a.title + '</div>' +
+          '<div class="r-sub">' + a.district + ' • ' + subtitle + '</div>' +
+        '</div>' +
+      '</article>'
+    );
+  }
+  function suggestCardHTML(prompt, idx){
+    return (
+      '<div class="r-suggest" data-suggest="'+idx+'">' +
+        '<span class="tag"><span class="material-symbols-outlined" style="font-size:1em;">search</span>люди ищут</span>' +
+        '<div class="avatars"><span></span><span></span><span></span></div>' +
+        '<p>' + prompt.text + '</p>' +
+      '</div>'
+    );
+  }
+
+  function renderResultsWall(){
+    var all = allApts().slice().sort(function(a,b){ return b.rating-a.rating; });
+    var grid = document.getElementById("results-grid");
+    var status = document.getElementById("results-status");
+    status.innerHTML = '<span>Всего объектов: <b>'+all.length+'</b></span>';
+    var shown = all.slice(0, catalogVisible);
+
+    var out = [], si = 0;
+    shown.forEach(function(a, i){
+      out.push(cardHTML(a));
+      if ((i+1) % 3 === 0 && si < SUGGEST_PROMPTS.length){
+        out.push(suggestCardHTML(SUGGEST_PROMPTS[si], si));
+        si++;
+      }
+    });
+    grid.innerHTML = out.join("");
+
+    var moreRow = document.getElementById("show-more-row");
+    var remaining = all.length - shown.length;
+    if (remaining > 0){
+      moreRow.hidden = false;
+      document.getElementById("show-more-label").textContent = "Показать ещё " + remaining + " вариант" + (remaining===1?"":remaining<5?"а":"ов");
+    } else {
+      moreRow.hidden = true;
+    }
+  }
+
+  document.getElementById("show-more-btn").addEventListener("click", function(){
+    catalogVisible += 6;
+    renderResultsWall();
+  });
+  document.getElementById("results-grid").addEventListener("click", function(e){
+    var save = e.target.closest("[data-save]");
+    if (save){
+      var id = save.dataset.save;
+      var idx = SAVED.indexOf(id);
+      if (idx===-1) SAVED.push(id); else SAVED.splice(idx,1);
+      saveSaved(SAVED);
+      save.classList.toggle("on");
+      save.querySelector(".material-symbols-outlined").classList.toggle("on");
+      updateFavCount();
+      if (document.getElementById("browse-card").dataset.aptId === id) renderCardInto(document.getElementById("browse-card"), id);
+      return;
+    }
+    var suggest = e.target.closest("[data-suggest]");
+    if (suggest){
+      var prompt = SUGGEST_PROMPTS[+suggest.dataset.suggest];
+      if (prompt) runFreeText(prompt.query);
+      return;
+    }
+    var card = e.target.closest("[data-listing-id]");
+    if (card){ openBrowseCard(card.dataset.listingId); }
+  });
+
+  /* ---------------- AI chat + map (Yandex.Realty-style) ---------------- */
+  var yx = { results: [], selectedId: null, hiddenIds: [], investing: null, rentMode: false, zoom: 1 };
+  var AGENT_FEE_PCT = 0.03;
+
+  function ruPlural(n, forms){
+    var n10 = n%10, n100 = n%100;
+    if (n10===1 && n100!==11) return forms[0];
+    if (n10>=2 && n10<=4 && !(n100>=12 && n100<=14)) return forms[1];
+    return forms[2];
+  }
+  function breakdownLine(list){
+    var counts = {0:0,1:0,2:0,3:0,4:0};
+    list.forEach(function(a){ counts[a.rooms] = (counts[a.rooms]||0)+1; });
+    var words = {
+      0: ['студия','студии','студий'],
+      1: ['однушка','однушки','однушек'],
+      2: ['двушка','двушки','двушек'],
+      3: ['трёшка','трёшки','трёшек'],
+      4: ['четырёхкомнатная','четырёхкомнатные','четырёхкомнатных']
+    };
+    var parts = [];
+    [0,1,2,3,4].forEach(function(r){
+      if (counts[r]) parts.push(counts[r] + ' ' + ruPlural(counts[r], words[r]));
+    });
+    return parts.length ? ('В выдаче: ' + parts.join(', ') + '.') : '';
+  }
+  function abbrPrice(usd){ return usd>=1000 ? '$'+Math.round(usd/1000)+'k' : '$'+usd; }
+  function roomBadgeLabel(a){ return a.rooms===0 ? 'С' : String(a.rooms); }
+  function demoPhone(id){
+    var h = hashInt(id);
+    var rest = String(10000000 + (h % 90000000));
+    var s = '5' + rest;
+    return '+995 ' + s.slice(0,3) + ' ' + s.slice(3,5) + ' ' + s.slice(5,7) + ' ' + s.slice(7,9);
+  }
+  function toastQuick(msg){
+    var el = document.getElementById("yx-toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastQuick._t);
+    toastQuick._t = setTimeout(function(){ el.classList.remove("show"); }, 2200);
+  }
+
+  function threadEl(){ return document.getElementById("yx-thread"); }
+  function scrollThreadToBottom(){ var t=threadEl(); t.scrollTop = t.scrollHeight; }
+  function appendUserLine(text){
+    var div = document.createElement("div");
+    div.className = "yx-user-line";
+    var span = document.createElement("span");
+    span.textContent = text;
+    div.appendChild(span);
+    threadEl().appendChild(div);
+    scrollThreadToBottom();
+  }
+  function appendThinking(cb, delay){
+    var div = document.createElement("div");
+    div.className = "yx-thinking";
+    div.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">progress_activity</span> ИИ анализирует…';
+    threadEl().appendChild(div);
+    scrollThreadToBottom();
+    setTimeout(function(){ div.remove(); cb(); }, delay || 550);
+  }
+  function appendThinkingPersistent(){
+    var div = document.createElement("div");
+    div.className = "yx-thinking";
+    div.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">progress_activity</span> ИИ думает…';
+    threadEl().appendChild(div);
+    scrollThreadToBottom();
+    return div;
+  }
+  function escapeHTML(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function inlineMd(s){ return escapeHTML(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"); }
+  function mdLiteToHTML(text){
+    var lines = String(text).split("\n");
+    var html = "", inList = false;
+    lines.forEach(function(line){
+      var trimmed = line.trim();
+      if (/^[-•]\s+/.test(trimmed)){
+        if (!inList){ html += "<ul>"; inList = true; }
+        html += "<li>" + inlineMd(trimmed.replace(/^[-•]\s+/, "")) + "</li>";
+      } else {
+        if (inList){ html += "</ul>"; inList = false; }
+        if (trimmed) html += "<p>" + inlineMd(trimmed) + "</p>";
+      }
+    });
+    if (inList) html += "</ul>";
+    return html || "<p></p>";
+  }
+  function renderAiText(text){
+    var div = document.createElement("div");
+    div.className = "yx-ai-block yx-ai-text";
+    div.innerHTML = mdLiteToHTML(text);
+    threadEl().appendChild(div);
+    scrollThreadToBottom();
+    return div;
+  }
+  function renderAiBlock(cfg){
+    var html = '<div class="yx-ai-block">';
+    if (cfg.title) html += '<h3>' + cfg.title + '</h3>';
+    if (cfg.lead) html += '<p class="lead"><span class="material-symbols-outlined">auto_awesome</span>' + cfg.lead + '</p>';
+    if (cfg.breakdown) html += '<p class="breakdown">' + cfg.breakdown + '</p>';
+    if (cfg.question){
+      html += '<p class="yx-question">' + cfg.question + '</p>';
+      html += '<div class="yx-options">' + cfg.options.map(function(o,i){
+        return '<button type="button" class="yx-option" data-opt="'+i+'"><span class="plus">+</span><span>'+o.label+'</span></button>';
+      }).join("") + '</div>';
+    }
+    html += '</div>';
+    var tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    var block = tmp.firstChild;
+    threadEl().appendChild(block);
+    if (cfg.options){
+      var btns = block.querySelectorAll("[data-opt]");
+      btns.forEach(function(btn){
+        btn.addEventListener("click", function(){
+          var opt = cfg.options[+btn.dataset.opt];
+          btns.forEach(function(b){ b.disabled = true; b.style.opacity = (b===btn ? 1 : .35); });
+          appendUserLine(opt.label);
+          opt.onSelect();
+        });
+      });
+    }
+    scrollThreadToBottom();
+    return block;
+  }
+
+  function updateHiddenChip(){
+    var el = document.getElementById("yx-restore-hidden");
+    if (yx.hiddenIds.length > 0){
+      el.hidden = false;
+      document.getElementById("yx-hidden-count").textContent = yx.hiddenIds.length;
+    } else {
+      el.hidden = true;
+    }
+  }
+
+  function renderMap(list){
+    yx.results = list;
+    var wrap = document.getElementById("yx-markers");
+    var visible = list.filter(function(a){ return yx.hiddenIds.indexOf(a.id)===-1; });
+    wrap.innerHTML = visible.map(function(a){
+      var seed = hashInt(a.id);
+      var x = 44 + (seed % 48);
+      var y = 8 + (Math.floor(seed/48) % 80);
+      return '<button type="button" class="yx-marker'+(a.id===yx.selectedId?' active':'')+'" style="left:'+x+'%;top:'+y+'%;" data-marker="'+a.id+'">' +
+        '<span class="rbadge">'+roomBadgeLabel(a)+'</span>'+abbrPrice(yx.rentMode ? monthlyLong(a) : a.price) +
+      '</button>';
+    }).join("");
+    wrap.querySelectorAll("[data-marker]").forEach(function(btn){
+      btn.addEventListener("click", function(){ selectListing(btn.dataset.marker); });
+    });
+  }
+
+  function selectListing(id){
+    yx.selectedId = id;
+    document.querySelectorAll(".yx-marker").forEach(function(m){ m.classList.toggle("active", m.dataset.marker===id); });
+    renderCardInto(document.getElementById("yx-card"), id);
+  }
+  function openBrowseCard(id){ renderCardInto(document.getElementById("browse-card"), id); }
+  function closeCard(container){ container.classList.remove("open"); container.hidden = true; }
+
+  function cardBodyHTML(a){
+    var rentMode = !!yx.rentMode;
+    var saved = SAVED.indexOf(a.id) !== -1;
+    var priceHTML, rowsHTML;
+    if (rentMode){
+      var rent = monthlyLong(a);
+      var deposit = rent, agentFeeRent = rent*0.5, firstPayment = rent+deposit+agentFeeRent;
+      priceHTML =
+        '<div class="yx-card-price"><b>' + fmtUSD(rent) + '/мес</b><span>≈ ' + fmtGEL(rent) + '/мес</span></div>' +
+        '<div class="yx-card-sub">расчётная аренда · долгосрочный контракт</div>';
+      rowsHTML =
+        '<div class="yx-card-row"><span class="k">Залог (1 месяц)</span><span class="v">'+fmtUSD(deposit)+'</span></div>' +
+        '<div class="yx-card-row"><span class="k">Комиссия агента<span class="pct">50%</span></span><span class="v">'+fmtUSD(agentFeeRent)+'</span></div>' +
+        '<div class="yx-card-row total"><span class="k">Первый платёж</span><span class="v">'+fmtUSD(firstPayment)+'</span></div>';
+    } else {
+      var fee = a.price * AGENT_FEE_PCT, total = a.price + fee;
+      priceHTML =
+        '<div class="yx-card-price"><b>' + fmtUSD(a.price) + '</b><span>≈ ' + fmtGEL(a.price) + '</span></div>' +
+        '<div class="yx-card-sub">цена продажи · ' + fmtUSD(a.price/a.area) + '/м²</div>';
+      rowsHTML =
+        '<div class="yx-card-row"><span class="k">Задаток при бронировании</span><span class="v">требуется</span></div>' +
+        '<div class="yx-card-row"><span class="k">Комиссия агента<span class="pct">'+Math.round(AGENT_FEE_PCT*100)+'%</span></span><span class="v">'+fmtUSD(fee)+'</span></div>' +
+        '<div class="yx-card-row total"><span class="k">Итого к оплате</span><span class="v">'+fmtUSD(total)+' + задаток</span></div>';
+    }
+    return (
+      '<div class="yx-card-icons">' +
+        '<div class="left-group">' +
+          '<button type="button" class="yx-icon-btn" data-act="open" title="Открыть в каталоге"><span class="material-symbols-outlined">open_in_new</span></button>' +
+          '<button type="button" class="yx-icon-btn" data-act="hide" title="Скрыть"><span class="material-symbols-outlined">visibility_off</span></button>' +
+          '<button type="button" class="yx-icon-btn'+(saved?' on':'')+'" data-act="save" title="Сохранить"><span class="material-symbols-outlined msi'+(saved?' on':'')+'">favorite</span></button>' +
+        '</div>' +
+        '<button type="button" class="yx-icon-btn" data-act="close" title="Закрыть"><span class="material-symbols-outlined">close</span></button>' +
+      '</div>' +
+      '<div class="yx-card-photo">' + mediaHTML(a, {badgeRow:false, save:false}) + '</div>' +
+      '<div class="yx-card-body">' +
+        '<div>' + priceHTML + '</div>' +
+        '<div><div class="yx-card-title">' + a.title + '</div><div class="yx-card-sub">' + a.district + ' · ' + a.roomsLabel + ' · ' + a.area + ' м²</div></div>' +
+        '<div class="yx-card-rows">' + rowsHTML + '</div>' +
+        '<div class="yx-contact"><span class="avatar">R</span><div class="info">Агент RealtorAI<br><span class="phone" data-phone-mask>+995 5●● ●● ●● ●●</span></div></div>' +
+        '<button type="button" class="yx-reveal-btn" data-act="reveal">Показать телефон</button>' +
+        '<button type="button" class="yx-calc-link" data-act="calc">Открыть в инвесткалькуляторе →</button>' +
+      '</div>'
+    );
+  }
+
+  function renderCardInto(container, id){
+    var a = id ? allApts().find(function(x){ return x.id===id; }) : null;
+    if (!a){ container.dataset.aptId = ""; container.innerHTML = ""; closeCard(container); return; }
+    container.dataset.aptId = a.id;
+    container.hidden = false;
+    container.classList.add("open");
+    container.innerHTML = cardBodyHTML(a);
+  }
+
+  function bindCardActions(container){
+    container.addEventListener("click", function(e){
+      var btn = e.target.closest("[data-act]"); if (!btn) return;
+      var id = container.dataset.aptId;
+      var a = allApts().find(function(x){ return x.id===id; });
+      if (!a) return;
+      var act = btn.dataset.act;
+      if (act==="close"){ closeCard(container); }
+      else if (act==="hide"){
+        yx.hiddenIds.push(a.id);
+        if (state.chatMode) renderMap(yx.results);
+        updateHiddenChip();
+        closeCard(container);
+        toastQuick("Объект скрыт");
+      }
+      else if (act==="save"){
+        var idx = SAVED.indexOf(a.id);
+        if (idx===-1) SAVED.push(a.id); else SAVED.splice(idx,1);
+        saveSaved(SAVED);
+        updateFavCount();
+        renderCardInto(container, a.id);
+        if (state.chatMode && state.category==="favorites"){ yx.results = categoryList("favorites"); renderMap(yx.results); }
+        if (!state.chatMode) renderResultsWall();
+      }
+      else if (act==="open"){
+        var targetId = a.id;
+        if (state.chatMode) exitChatMode();
+        closeCard(container);
+        switchView("chat");
+        renderResultsWall();
+        document.getElementById("results-grid").scrollIntoView({behavior:"smooth", block:"start"});
+        var target = document.querySelector('[data-listing-id="'+targetId+'"]');
+        if (target){ target.classList.add("flash"); setTimeout(function(){ target.classList.remove("flash"); }, 1600); }
+      }
+      else if (act==="calc"){
+        selectApt(a.id);
+        closeCard(container);
+        switchView("calculator");
+      }
+      else if (act==="reveal"){
+        var phone = demoPhone(a.id);
+        btn.textContent = phone;
+        btn.disabled = true;
+        var mask = container.querySelector("[data-phone-mask]");
+        if (mask) mask.innerHTML = phone + ' <span style="opacity:.6">(демо-номер)</span>';
+      }
+    });
+  }
+  bindCardActions(document.getElementById("yx-card"));
+  bindCardActions(document.getElementById("browse-card"));
+
+  function answerQ2(min, max){
+    var list = yx.results.filter(function(a){ return a.price>=min && a.price<max; });
+    if (list.length===0) list = yx.results.slice(0,4);
+    renderMap(list);
+    selectListing(list[0] ? list[0].id : null);
+    appendThinking(function(){
+      renderAiBlock({
+        title: "Вот что подобрал ИИ",
+        breakdown: list.length ? (list.length + " вариант" + (list.length===1?"":list.length<5?"а":"ов") + " отмечено на карте.") : "Под такие условия объектов не нашлось — попробуйте расширить бюджет."
+      });
+    });
+  }
+  function answerQ1(investing){
+    yx.investing = investing;
+    var list = allApts().slice();
+    if (investing===true) list.sort(function(a,b){ return b.yieldLong-a.yieldLong; });
+    else if (investing===false) list.sort(function(a,b){ return b.area-a.area; });
+    else list.sort(function(a,b){ return b.rating-a.rating; });
+    renderMap(list);
+    appendThinking(function(){
+      renderAiBlock({
+        lead: investing===true ? "Учёл: ищете для инвестиций — выше варианты с высокой доходностью." : investing===false ? "Учёл: подбираю для жизни — выше просторные варианты." : "Хорошо, ориентируюсь на рейтинг и доходность.",
+        question: "Какой бюджет рассматриваете?",
+        options: [
+          {label:"До $80 000", onSelect:function(){ answerQ2(0,80000); }},
+          {label:"$80 000 – $150 000", onSelect:function(){ answerQ2(80000,150000); }},
+          {label:"От $150 000", onSelect:function(){ answerQ2(150000,Infinity); }},
+          {label:"Пока не важно", onSelect:function(){ answerQ2(0,Infinity); }}
+        ]
+      });
+    });
+  }
+  function startConversation(){
+    enterChatMode();
+    clearCategoryActive();
+    clearHistoryActive();
+    threadEl().innerHTML = "";
+    aiMessages = [];
+    yx.hiddenIds = []; yx.investing = null; yx.rentMode = false;
+    updateHiddenChip();
+    var all = allApts().slice().sort(function(a,b){ return b.rating-a.rating; });
+    renderAiBlock({
+      title: "Нашёл " + all.length + " объектов в Тбилиси",
+      lead: "проверенные объекты с ИИ-оценкой доходности",
+      breakdown: breakdownLine(all),
+      question: "Чтобы подобрать точнее, подскажите: вы ищете квартиру для жизни или для инвестиций?",
+      options: [
+        {label:"Для жизни", onSelect:function(){ answerQ1(false); }},
+        {label:"Для инвестиций (сдача в аренду)", onSelect:function(){ answerQ1(true); }},
+        {label:"Пока не важно", onSelect:function(){ answerQ1(null); }}
+      ]
+    });
+    renderMap(all);
+    selectListing(all[0] ? all[0].id : null);
+  }
+  function runFreeText(text){
+    text = (text||"").trim();
+    if (!text) return;
+    enterChatMode();
+    clearCategoryActive();
+    clearHistoryActive();
+    yx.rentMode = false;
+    appendUserLine(text);
+    document.getElementById("yx-input").value = "";
+    document.getElementById("hero-input").value = "";
+    document.getElementById("browse-input").value = "";
+    var key = loadAIKey();
+    if (key){ runFreeTextAI(text); } else { runFreeTextHeuristic(text); }
+  }
+  function runFreeTextHeuristic(text){
+    appendThinking(function(){
+      var q = analyzeQuery(text);
+      var scored = allApts().map(function(a){ var s=scoreApt(a,q); return {apt:a, score:s.score}; }).sort(function(x,y){ return y.score-x.score; });
+      var relevant = scored.filter(function(s){ return s.score>15; });
+      var fallback = relevant.length===0;
+      var list = (fallback ? scored : relevant).map(function(s){ return s.apt; });
+      renderMap(list);
+      selectListing(list[0] ? list[0].id : null);
+      renderAiBlock({
+        title: fallback ? "Точных совпадений нет" : ("Нашёл " + list.length + " подходящих объект" + (list.length===1?"":list.length<5?"а":"ов")),
+        breakdown: fallback ? "Показываю популярные варианты по рейтингу." : breakdownLine(list)
+      });
+    }, 650);
+  }
+  function runFreeTextAI(text){
+    var thinkingEl = appendThinkingPersistent();
+    callClaudeAPI(text).then(function(result){
+      thinkingEl.remove();
+      renderAiText(result.text);
+      if (result.shownIds && result.shownIds.length){
+        var byId = {}; allApts().forEach(function(a){ byId[a.id] = a; });
+        var list = result.shownIds.map(function(id){ return byId[id]; }).filter(Boolean);
+        if (list.length){ renderMap(list); selectListing(list[0].id); }
+      }
+    }).catch(function(err){
+      thinkingEl.remove();
+      renderAiText("⚠️ " + (err && err.message ? err.message : "Не удалось связаться с ИИ."));
+    });
+  }
+
+  document.getElementById("yx-send").addEventListener("click", function(){ runFreeText(document.getElementById("yx-input").value); });
+  document.getElementById("yx-input").addEventListener("keydown", function(e){ if (e.key==="Enter"){ e.preventDefault(); runFreeText(this.value); } });
+  document.getElementById("hero-send").addEventListener("click", function(){ runFreeText(document.getElementById("hero-input").value); });
+  document.getElementById("hero-input").addEventListener("keydown", function(e){ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); runFreeText(this.value); } });
+  document.getElementById("browse-send").addEventListener("click", function(){ runFreeText(document.getElementById("browse-input").value); });
+  document.getElementById("browse-input").addEventListener("keydown", function(e){ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); runFreeText(this.value); } });
+  document.getElementById("hero-chip-guided").addEventListener("click", startConversation);
+  document.getElementById("hero-chip-sample").addEventListener("click", function(){ runFreeText(this.textContent); });
+  document.getElementById("yx-restart").addEventListener("click", startConversation);
+  document.getElementById("yx-restore-hidden").addEventListener("click", function(){
+    yx.hiddenIds = [];
+    renderMap(yx.results);
+    updateHiddenChip();
+    toastQuick("Скрытые объекты возвращены");
+  });
+  document.getElementById("yx-share").addEventListener("click", function(){
+    var url = location.href;
+    var done = function(){ toastQuick("Ссылка скопирована"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, done);
+    else done();
+  });
+  document.getElementById("yx-like").addEventListener("click", function(){
+    this.classList.add("active");
+    document.getElementById("yx-dislike").classList.remove("active");
+    toastQuick("Спасибо за отзыв!");
+  });
+  document.getElementById("yx-dislike").addEventListener("click", function(){
+    this.classList.add("active");
+    document.getElementById("yx-like").classList.remove("active");
+    toastQuick("Учтём в следующий раз");
+  });
+  document.getElementById("yx-zoom-in").addEventListener("click", function(){
+    yx.zoom = Math.min(1.5, yx.zoom + 0.15);
+    document.getElementById("yx-markers").style.transform = "scale(" + yx.zoom + ")";
+  });
+  document.getElementById("yx-zoom-out").addEventListener("click", function(){
+    yx.zoom = Math.max(0.7, yx.zoom - 0.15);
+    document.getElementById("yx-markers").style.transform = "scale(" + yx.zoom + ")";
+  });
+
+  /* ---------------- currency toggle ---------------- */
+  document.getElementById("currency-toggle").addEventListener("click", function(){
+    document.body.classList.toggle("gel-active");
+  });
+  updateFavCount();
+
+  /* ---------------- AI settings modal ---------------- */
+  function maskKey(key){ return key.length > 10 ? key.slice(0,7) + "…" + key.slice(-4) : "••••••"; }
+  function updateAIStatus(){
+    var key = loadAIKey();
+    var on = !!key;
+    document.getElementById("ai-status-dot").classList.toggle("on", on);
+    document.getElementById("ai-status-dot").title = on ? "Живой ИИ включён" : "Живой ИИ выключен";
+    document.getElementById("ai-key-hint").textContent = on
+      ? "Ключ сохранён (" + maskKey(key) + ") — работает живой ИИ."
+      : "Ключ не задан — сейчас работает демо-эвристика.";
+    document.getElementById("yx-input").placeholder = on ? "Спросите RealtorAI о чём угодно…" : "Задайте свой вопрос";
+    document.getElementById("hero-input").placeholder = on ? "Спросите RealtorAI о недвижимости Грузии — и не только…" : "Хочу двушку в Ваке до $100 000, для сдачи в аренду";
+    document.getElementById("browse-input").placeholder = on ? "Спросите что угодно о недвижимости…" : "Какую квартиру ищете?";
+  }
+  function openAIModal(){
+    document.getElementById("ai-key-input").value = loadAIKey();
+    document.getElementById("ai-model-select").value = loadAIModel();
+    document.getElementById("ai-modal-backdrop").hidden = false;
+  }
+  function closeAIModal(){ document.getElementById("ai-modal-backdrop").hidden = true; }
+  document.getElementById("ai-settings-btn").addEventListener("click", openAIModal);
+  document.getElementById("ai-modal-close").addEventListener("click", closeAIModal);
+  document.getElementById("ai-modal-backdrop").addEventListener("click", function(e){ if (e.target === this) closeAIModal(); });
+  document.getElementById("ai-key-save").addEventListener("click", function(){
+    saveAIKey(document.getElementById("ai-key-input").value.trim());
+    saveAIModel(document.getElementById("ai-model-select").value);
+    aiMessages = [];
+    updateAIStatus();
+    closeAIModal();
+    toastQuick(loadAIKey() ? "Живой ИИ включён" : "Настройки ИИ сохранены");
+  });
+  document.getElementById("ai-key-clear").addEventListener("click", function(){
+    saveAIKey("");
+    document.getElementById("ai-key-input").value = "";
+    aiMessages = [];
+    updateAIStatus();
+    toastQuick("Ключ удалён — снова работает демо-эвристика");
+  });
+  updateAIStatus();
+
+  /* ---------------- sidebar: categories, view switch, new chat, history, mobile ---------------- */
+  function switchView(name){
+    document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("active", v.id === "view-"+name); });
+    document.querySelectorAll(".sb-bottom [data-view]").forEach(function(b){ b.classList.toggle("active", b.dataset.view===name); });
+    window.scrollTo(0,0);
+  }
+  function closeSidebarMobile(){ document.getElementById("app-shell").classList.remove("sb-open"); }
+  function openSidebarMobile(){ document.getElementById("app-shell").classList.add("sb-open"); }
+
+  document.querySelector(".sb-nav").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-cat]"); if (!btn) return;
+    switchView("chat");
+    setCategory(btn.dataset.cat);
+    closeSidebarMobile();
+  });
+  document.querySelector(".sb-bottom").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-view]"); if (!btn) return;
+    switchView(btn.dataset.view);
+    closeSidebarMobile();
+  });
+  document.getElementById("bookmarks-btn").addEventListener("click", function(){
+    switchView("chat");
+    setCategory("favorites");
+    closeSidebarMobile();
+  });
+  document.getElementById("sb-newchat").addEventListener("click", function(){
+    switchView("chat");
+    exitChatMode();
+    closeCard(document.getElementById("browse-card"));
+    document.getElementById("hero-input").value = "";
+    document.getElementById("browse-input").value = "";
+    window.scrollTo(0,0);
+    closeSidebarMobile();
+  });
+  document.getElementById("mobile-menu-btn").addEventListener("click", openSidebarMobile);
+  document.getElementById("sb-close").addEventListener("click", closeSidebarMobile);
+  document.getElementById("sidebar-backdrop").addEventListener("click", closeSidebarMobile);
+
+  var CHAT_HISTORY = [
+    { id:"h1", title:"Новостройка в Ваке с террасой", run:function(){ runFreeText("Новостройка в Ваке с террасой"); } },
+    { id:"h2", title:"Аренда у метро Марджанишвили", run:function(){ setCategory("rent"); } },
+    { id:"h3", title:"Историческая квартира в Сололаки", run:function(){ runFreeText("Историческая квартира в Сололаки для инвестиций"); } },
+    { id:"h4", title:"Бюджетная студия для студента", run:function(){ runFreeText("Бюджетная студия для студента до 65000"); } }
+  ];
+  function renderHistory(){
+    document.getElementById("sb-history-list").innerHTML = CHAT_HISTORY.map(function(h){
+      return '<button type="button" class="sb-hist-item" data-hist="'+h.id+'"><span class="material-symbols-outlined">chat_bubble</span><span>'+h.title+'</span></button>';
+    }).join("");
+  }
+  document.getElementById("sb-history-list").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-hist]"); if (!btn) return;
+    switchView("chat");
+    var h = CHAT_HISTORY.find(function(x){ return x.id===btn.dataset.hist; });
+    if (h) h.run();
+    clearHistoryActive();
+    btn.classList.add("active");
+    closeSidebarMobile();
+  });
+
+  /* ---------------- calculator ---------------- */
+  var calcState = { mode:"hybrid", horizon:5 };
+
+  function populateSelect(){
+    var sel = document.getElementById("c-select");
+    sel.innerHTML = allApts().map(function(a){
+      return '<option value="'+a.id+'">'+a.title+' — '+fmtUSD(a.price)+' ('+a.area+' м²)</option>';
+    }).join("");
+  }
+  function selectApt(id){
+    var apts = allApts();
+    var a = apts.find(function(x){ return x.id===id; }) || apts[0];
+    document.getElementById("c-select").value = a.id;
+    document.getElementById("c-price").value = a.price;
+    document.getElementById("lot-chip").textContent = "ЛОТ №" + (apts.indexOf(a)+1) + " (" + a.district.toUpperCase() + ")";
+    document.getElementById("occ-val").textContent = Math.round(a.occ*100) + "%";
+    calcState.aptId = a.id;
+    recompute();
+  }
+  function currentApt(){ return allApts().find(function(x){ return x.id===calcState.aptId; }) || allApts()[0]; }
+
+  function setMode(mode){
+    calcState.mode = mode;
+    document.querySelectorAll("#mode-switch button").forEach(function(b){ b.classList.toggle("active", b.dataset.mode===mode); });
+    document.getElementById("mgmt-fee-val").textContent = mode==="long" ? "0% (самостоятельно)" : "15% от выручки";
+    recompute();
+  }
+  document.getElementById("mode-switch").addEventListener("click", function(e){
+    var btn = e.target.closest("button"); if (!btn) return; setMode(btn.dataset.mode);
+  });
+  document.getElementById("c-select").addEventListener("change", function(){ selectApt(this.value); });
+  document.getElementById("c-price").addEventListener("input", recompute);
+  document.getElementById("c-furnish").addEventListener("input", recompute);
+  document.getElementById("horizon").addEventListener("input", function(){
+    calcState.horizon = parseInt(this.value,10);
+    document.getElementById("horizon-val").textContent = calcState.horizon + (calcState.horizon===1?" год":calcState.horizon<5?" года":" лет");
+    recompute();
+  });
+  document.getElementById("recalc-btn").addEventListener("click", function(){
+    recompute();
+    this.classList.remove("pulse-once"); void this.offsetWidth; this.classList.add("pulse-once");
+  });
+  document.getElementById("pdf-btn").addEventListener("click", function(){
+    var t = document.getElementById("pdf-toast");
+    t.classList.add("show");
+    setTimeout(function(){ t.classList.remove("show"); }, 2600);
+  });
+
+  function growthChartSVG(prices, rents, horizon){
+    var w=560, h=220, padL=6, padR=6, padT=16, padB=8;
+    var maxV = Math.max(prices[prices.length-1], rents[rents.length-1]||0) * 1.06;
+    var minV = Math.min(prices[0], rents[0]||0) * 0.94;
+    function x(i){ return padL + (i/horizon) * (w-padL-padR); }
+    function y(v){ return h-padB - ((v-minV)/(maxV-minV)) * (h-padT-padB); }
+    var pricePts = prices.map(function(v,i){ return x(i)+","+y(v); }).join(" ");
+    var rentPts = rents.map(function(v,i){ return x(i)+","+y(v); }).join(" ");
+    var areaPts = pricePts + " " + x(horizon) + "," + (h-padB) + " " + x(0) + "," + (h-padB);
+    var grid = [0,1,2,3].map(function(i){ var yy = padT + i*(h-padT-padB)/3; return '<line x1="'+padL+'" y1="'+yy+'" x2="'+(w-padR)+'" y2="'+yy+'" stroke="var(--line)" stroke-width="1"/>'; }).join("");
+    var dots = prices.map(function(v,i){ return '<circle cx="'+x(i)+'" cy="'+y(v)+'" r="'+(i===horizon?4:2.4)+'" fill="var(--primary)"'+(i===horizon?' stroke="var(--surface-1)" stroke-width="2"':'')+'/>'; }).join("");
+    return (
+      '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:100%;height:220px;overflow:visible;">' +
+        grid +
+        '<polygon points="'+areaPts+'" fill="var(--primary)" opacity="0.10"/>' +
+        '<polyline points="'+pricePts+'" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>' +
+        '<polyline points="'+rentPts+'" fill="none" stroke="var(--secondary)" stroke-width="2.5" stroke-dasharray="5 5" stroke-linecap="round"/>' +
+        dots +
+      '</svg>'
+    );
+  }
+
+  function recompute(){
+    var a = currentApt(); if (!a) return;
+    var price = parseFloat(document.getElementById("c-price").value) || a.price;
+    var furnish = parseFloat(document.getElementById("c-furnish").value) || 0;
+    var invested = price + furnish;
+    var monthly = monthlyByMode(a, calcState.mode) * (price/a.price);
+    var annual = monthly*12;
+    var horizon = calcState.horizon;
+
+    document.getElementById("m-cashflow").innerHTML = fmtUSD(monthly) + "<small>/мес</small>";
+    document.getElementById("m-cashflow-sub").textContent = "~" + fmtUSD(annual) + " в год (Net Yield " + pct(annual/invested) + ")";
+
+    var years=[], prices=[], rents=[];
+    var cum=0;
+    for (var i=0;i<=horizon;i++){
+      years.push(i);
+      prices.push(price * Math.pow(1+a.growth, i));
+      if (i>0) cum += annual;
+      rents.push(price + cum);
+    }
+    var finalPrice = prices[prices.length-1];
+    var totalReturn = (finalPrice + cum) / invested;
+    var irr = Math.pow(totalReturn, 1/horizon) - 1;
+    document.getElementById("m-irr").innerHTML = pct(irr) + "<small>/год</small>";
+    document.getElementById("m-payback").innerHTML = (invested/annual).toFixed(1) + ' <small>лет</small>';
+
+    document.getElementById("chart-holder").innerHTML = growthChartSVG(prices, rents, horizon);
+    var mid = Math.max(1, Math.round(horizon/2));
+    var labelYears = Array.from(new Set([0,1,mid,horizon])).sort(function(x,y){return x-y;});
+    document.getElementById("chart-x-labels").innerHTML = labelYears.map(function(y,i){
+      var isHi = y===horizon;
+      var val = y===0?price:prices[y];
+      return '<div class="lab'+(isHi?' hi':'')+'"><b>'+(y===0?"Старт":y+" "+(y===1?"год":y<5?"года":"лет"))+'</b><span>'+fmtUSD(val)+(y>0?' (+'+pct(val/price-1)+')':'')+'</span></div>';
+    }).join("");
+
+    var best = ["long","short","hybrid"].map(function(m){ return {m:m, v:monthlyByMode(a,m)}; }).sort(function(x,y){return y.v-x.v;})[0];
+    var modeName = {long:"долгосрочная аренда", short:"посуточная аренда", hybrid:"гибридная модель"}[best.m];
+    document.getElementById("ai-verdict-text").innerHTML =
+      '<b>Стратегический вердикт RealtorAI:</b> Для объекта в районе ' + a.district + ' лучшую денежную доходность показывает <em>' + modeName + '</em>: ' + fmtUSD(best.v) + '/мес. ' +
+      'При выбранном горизонте ' + horizon + (horizon===1?' год':horizon<5?' года':' лет') + ' модель даёт IRR около ' + pct(irr) + ' годовых с учётом роста цены и арендного потока.';
+  }
+
+  /* ---------------- district analytics ---------------- */
+  function renderAnalytics(){
+    var apts = allApts();
+    var byDistrict = {};
+    apts.forEach(function(a){ (byDistrict[a.district] = byDistrict[a.district]||[]).push(a); });
+    var featured = ["Ваке","Сабуртало","Сололаки"].filter(function(d){ return byDistrict[d]; });
+    var tagWords = {"Ваке":"PREMIUM","Сабуртало":"LIQUID","Сололаки":"AIRBNB HOT"};
+
+    function avg(list, fn){ return list.reduce(function(s,a){ return s+fn(a); },0)/list.length; }
+
+    var cards = featured.map(function(d){
+      var list = byDistrict[d];
+      var pricePerM2 = avg(list, function(a){ return a.price/a.area; });
+      var capRate = avg(list, function(a){ return a.yieldLong; });
+      var trend = avg(list, function(a){ return a.growth; });
+      var days = 15 + (hashInt(d) % 26);
+      return (
+        '<div class="d-card">' +
+          '<div>' +
+            '<div class="d-head"><span class="d-name">' + d + '</span><span class="d-tag">' + (tagWords[d]||"DATA") + '</span></div>' +
+            '<div class="d-price">' + fmtUSD(pricePerM2) + ' / м²</div>' +
+            '<p class="d-desc">Средняя стоимость по ' + list.length + ' объект' + (list.length===1?'у':'ам') + ' каталога</p>' +
+          '</div>' +
+          '<div class="d-stats">' +
+            '<div><span class="lbl">Средний Cap Rate:</span><span class="val">' + pct(capRate) + '</span></div>' +
+            '<div><span class="lbl">Срок экспозиции:</span><span class="val">' + days + ' дней</span></div>' +
+            '<div><span class="lbl">Тренд цен (год):</span><span class="val pos">+' + pct(trend) + '</span></div>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join("");
+
+    var compare = (
+      '<div class="d-card dark">' +
+        '<div>' +
+          '<div class="d-head"><span class="d-name">Тбилиси vs Батуми</span><span class="material-symbols-outlined">compare_arrows</span></div>' +
+          '<p class="d-desc">Тбилиси выигрывает за счёт всесезонного внутреннего спроса: загрузка круглый год против выраженной сезонности на побережье.</p>' +
+        '</div>' +
+        '<div class="d-stats">' +
+          '<div><span class="lbl">Сезонная просадка:</span><span class="val">Низкая</span></div>' +
+          '<div><span class="lbl">Защита капитала:</span><span class="val">Высокая</span></div>' +
+        '</div>' +
+      '</div>'
+    );
+
+    document.getElementById("analytics-grid").innerHTML = cards + compare;
+  }
+
+  /* ---------------- admin ---------------- */
+  var DISTRICT_HUE = {};
+  function renderAdminList(){
+    var wrap = document.getElementById("admin-items");
+    if (CUSTOM.length===0){ wrap.innerHTML = '<div class="admin-empty">Пока нет добавленных объектов — заполните форму слева.</div>'; return; }
+    wrap.innerHTML = CUSTOM.map(function(a){
+      return '<div class="admin-row"><div class="thumb"></div><div><div class="t">'+a.title+'</div><div class="m">'+a.district+' · '+fmtUSD(a.price)+'</div></div><button type="button" class="del-btn" data-del="'+a.id+'">Удалить</button></div>';
+    }).join("");
+  }
+  document.getElementById("admin-items").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-del]"); if (!btn) return;
+    CUSTOM = CUSTOM.filter(function(a){ return a.id!==btn.dataset.del; });
+    saveCustom(CUSTOM);
+    renderAll();
+  });
+  document.getElementById("admin-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var title = document.getElementById("f-title").value.trim();
+    var price = parseFloat(document.getElementById("f-price").value);
+    var area = parseFloat(document.getElementById("f-area").value);
+    if (!title || !price || !area) return;
+    var rooms = parseInt(document.getElementById("f-rooms").value,10);
+    var tags = Array.prototype.slice.call(document.querySelectorAll("#f-tags input:checked")).map(function(i){ return i.value; });
+    var apt = {
+      id:"custom-"+Date.now(), custom:true, title:title,
+      district: document.getElementById("f-district").value,
+      address: document.getElementById("f-address").value.trim(),
+      rooms: rooms, roomsLabel: roomsLabelFor(rooms), area: area,
+      floor: parseInt(document.getElementById("f-floor").value,10)||null,
+      floorsTotal: parseInt(document.getElementById("f-floors").value,10)||null,
+      year: parseInt(document.getElementById("f-year").value,10)||null,
+      price: price, rating: 4.5, tags: tags,
+      desc: document.getElementById("f-desc").value.trim() || "Объект добавлен через панель агента RealtorAI.",
+      yieldLong: (parseFloat(document.getElementById("f-yield").value)||6)/100,
+      dailyRate: parseFloat(document.getElementById("f-daily").value)||50,
+      occ: (parseFloat(document.getElementById("f-occ").value)||55)/100,
+      growth: (parseFloat(document.getElementById("f-growth").value)||6)/100
+    };
+    CUSTOM.push(apt); saveCustom(CUSTOM);
+    renderAll();
+    this.reset();
+    document.getElementById("f-rooms").value="2";
+    document.getElementById("f-yield").value="6"; document.getElementById("f-daily").value="50";
+    document.getElementById("f-occ").value="55"; document.getElementById("f-growth").value="6";
+    var toast = document.getElementById("admin-toast");
+    toast.textContent = "«"+title+"» добавлена в каталог";
+    toast.classList.add("show");
+    setTimeout(function(){ toast.classList.remove("show"); }, 2600);
+  });
+
+  function renderAll(){
+    populateSelect();
+    renderAnalytics();
+    renderAdminList();
+    updateCategoryCounts();
+    renderResultsWall();
+    if (state.chatMode && yx.results.length) renderMap(yx.results);
+    if (!calcState.aptId) calcState.aptId = allApts()[0].id;
+    document.getElementById("c-select").value = calcState.aptId;
+    recompute();
+  }
+
+  selectApt(allApts()[0].id);
+  setMode("hybrid");
+  renderHistory();
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
