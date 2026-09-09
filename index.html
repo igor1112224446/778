@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: разговорный поиск с картой и карточкой объекта (в стиле Яндекс.Недвижимости), каталог, инвестиционный калькулятор, аналитика районов и панель агента.">
+<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: чат-поиск и каталог в стиле Claude/ChatGPT с боковой панелью (история чатов, фильтры «Аренда», «Новостройки», «Вторичка», «Избранное»), карточка объекта, инвестиционный калькулятор, аналитика районов и панель агента.">
 <title>RealtorAI</title>
 <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@200..600,0..1&display=swap" rel="stylesheet">
@@ -117,25 +117,65 @@
   .glass-card{background:var(--surface-1);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:var(--radius-l);}
   .glass-frost{background:var(--glass-bg);backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--line-active);box-shadow:var(--shadow-lg);}
 
-  /* ---------- nav ---------- */
-  .topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb, var(--surface-1) 84%, transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
-  .topbar .row{display:flex;align-items:center;justify-content:space-between;height:76px;gap:20px;}
-  .brand{display:flex;align-items:center;gap:11px;}
-  .brand-mark{width:38px;height:38px;border-radius:var(--radius-m);background:var(--primary);color:var(--primary-fixed);display:flex;align-items:center;justify-content:center;font-family:"Epilogue";font-weight:800;font-size:1.15rem;flex:none;}
-  .brand-text{display:flex;flex-direction:column;line-height:1.15;}
-  .brand-name{font-family:"Epilogue";font-weight:700;font-size:1.1rem;color:var(--primary);letter-spacing:-.01em;}
-  .brand-sub{font-family:"JetBrains Mono";font-size:.62rem;letter-spacing:.07em;color:var(--ink-soft);}
-  nav.links{display:none;align-items:center;gap:30px;}
-  @media (min-width:980px){nav.links{display:flex;}}
-  nav.links > a, nav.links > .dropdown > button{font-size:.9rem;font-weight:600;color:var(--ink-soft);background:none;border:none;cursor:pointer;padding:0 0 4px;display:flex;align-items:center;gap:4px;font-family:"Manrope";}
-  nav.links > a:hover, nav.links > .dropdown > button:hover{color:var(--ink);}
-  nav.links > a.active{color:var(--primary);border-bottom:2px solid var(--primary);}
-  .roi-badge{font-family:"JetBrains Mono";font-size:.62rem;font-weight:700;background:var(--primary-fixed);color:var(--primary-fixed-ink);padding:2px 6px;border-radius:5px;}
-  .dropdown{position:relative;}
-  .dropdown-panel{position:absolute;top:100%;left:0;margin-top:10px;width:220px;background:var(--surface-1);border:1px solid var(--line);border-radius:var(--radius-m);box-shadow:var(--shadow-lg);padding:8px;display:none;z-index:60;}
-  .dropdown:hover .dropdown-panel, .dropdown:focus-within .dropdown-panel{display:block;}
-  .dropdown-panel button{display:block;width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:none;background:none;font-family:"Manrope";font-size:.86rem;color:var(--ink);cursor:pointer;}
-  .dropdown-panel button:hover{background:var(--surface-2);}
+  /* ---------- app shell (sidebar layout, Claude/ChatGPT-style) ---------- */
+  .app-shell{display:flex;align-items:stretch;min-height:100vh;}
+  .app-sidebar{
+    width:272px;flex:none;background:var(--surface-2);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;position:sticky;top:0;align-self:flex-start;height:100vh;
+    transition:transform .25s ease;z-index:70;
+  }
+  .sb-top{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 12px;}
+  .sb-brand{display:flex;align-items:center;gap:10px;}
+  .sb-brand .mark{width:32px;height:32px;border-radius:9px;background:var(--primary);color:var(--primary-fixed);display:flex;align-items:center;justify-content:center;font-family:"Epilogue";font-weight:800;font-size:1rem;flex:none;}
+  .sb-brand .name{font-family:"Epilogue";font-weight:700;font-size:1rem;color:var(--primary);letter-spacing:-.01em;}
+  .sb-close{display:none;border:none;background:none;color:var(--ink-soft);cursor:pointer;width:32px;height:32px;border-radius:8px;align-items:center;justify-content:center;}
+  .sb-close:hover{background:var(--surface-1);color:var(--ink);}
+
+  .sb-newchat{display:flex;align-items:center;gap:9px;margin:2px 14px 16px;padding:11px 14px;border-radius:var(--radius-m);border:1px solid var(--line-active);background:var(--surface-1);color:var(--ink);font-family:"Manrope";font-weight:600;font-size:.86rem;cursor:pointer;box-shadow:var(--shadow);}
+  .sb-newchat:hover{border-color:var(--primary);color:var(--primary);}
+
+  .sb-nav{padding:0 10px;display:flex;flex-direction:column;gap:2px;}
+  .sb-nav button{display:flex;align-items:center;gap:11px;width:100%;padding:10px;border-radius:var(--radius-m);border:none;background:none;color:var(--ink-soft);font-family:"Manrope";font-weight:600;font-size:.86rem;cursor:pointer;text-align:left;}
+  .sb-nav button .material-symbols-outlined{font-size:1.15rem;}
+  .sb-nav button:hover{background:var(--surface-1);color:var(--ink);}
+  .sb-nav button.active{background:var(--primary-fixed);color:var(--primary-fixed-ink);}
+  .sb-nav button .cnt{margin-left:auto;font-family:"JetBrains Mono";font-size:.66rem;font-weight:700;color:var(--ink-soft);background:var(--surface-1);border-radius:99px;padding:1px 7px;}
+  .sb-nav button.active .cnt{background:rgba(255,255,255,.5);color:inherit;}
+
+  .sb-history{flex:1;min-height:0;overflow-y:auto;padding:18px 10px 6px;}
+  .sb-history-label{padding:0 10px 8px;font-family:"JetBrains Mono";font-size:.64rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);}
+  .sb-hist-item{display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;border-radius:var(--radius-m);border:none;background:none;color:var(--ink);font-family:"Manrope";font-size:.82rem;cursor:pointer;text-align:left;}
+  .sb-hist-item .material-symbols-outlined{font-size:1rem;color:var(--ink-soft);flex:none;}
+  .sb-hist-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sb-hist-item:hover{background:var(--surface-1);}
+  .sb-hist-item.active{background:var(--surface-1);color:var(--primary);font-weight:700;}
+
+  .sb-bottom{border-top:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:2px;}
+  .sb-bottom button{display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border-radius:var(--radius-m);border:none;background:none;color:var(--ink-soft);font-family:"Manrope";font-weight:600;font-size:.82rem;cursor:pointer;text-align:left;}
+  .sb-bottom button .material-symbols-outlined{font-size:1.1rem;}
+  .sb-bottom button:hover{background:var(--surface-1);color:var(--ink);}
+  .sb-bottom button.active{color:var(--primary);}
+  .sb-row2{display:flex;gap:6px;margin-top:4px;}
+  .sb-row2 #currency-toggle{flex:1;justify-content:center;}
+  .sb-row2 .icon-btn{border:1px solid var(--line-active);}
+
+  .mobile-bar{display:none;position:sticky;top:0;z-index:40;align-items:center;gap:10px;padding:12px 16px;background:color-mix(in srgb, var(--surface-1) 90%, transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+  .mobile-menu-btn{border:none;background:none;color:var(--ink);cursor:pointer;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .mobile-menu-btn:hover{background:var(--surface-2);}
+  .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(15,20,18,.45);z-index:65;}
+
+  @media (max-width:980px){
+    .mobile-bar{display:flex;}
+    .sb-close{display:flex;}
+    .app-sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);box-shadow:var(--shadow-lg);}
+    .app-shell.sb-open .app-sidebar{transform:translateX(0);}
+    .app-shell.sb-open .sidebar-backdrop{display:block;}
+  }
+
+  .app-main{flex:1;min-width:0;}
+  .view{display:none;}
+  .view.active{display:block;}
+
   .trail{display:flex;align-items:center;gap:10px;}
   .icon-btn{position:relative;width:40px;height:40px;border-radius:var(--radius-m);border:none;background:none;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;}
   .icon-btn:hover{background:var(--surface-2);color:var(--ink);}
@@ -157,19 +197,23 @@
   .blob-a{width:360px;height:360px;top:-120px;right:14%;background:var(--primary-fixed);}
   .blob-b{width:280px;height:280px;top:220px;left:4%;background:var(--secondary-fixed);}
   .hero-inner{max-width:700px;margin:0 auto;text-align:center;}
-  h1.headline{font-size:clamp(2.15rem,4.6vw,3.4rem);margin-top:20px;color:var(--primary);}
+  h1.headline{font-size:clamp(2.15rem,4.6vw,3.4rem);margin-top:20px;color:var(--primary);transition:font-size .2s ease;}
   h1.headline em{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:var(--secondary);font-weight:600;}
   .lede{font-size:1.1rem;color:var(--ink-soft);max-width:56ch;margin:16px auto 0;}
+  body.chat-active .hero{padding-top:28px;}
+  body.chat-active .hero-inner .eyebrow{display:none;}
+  body.chat-active .hero-inner .lede{display:none;}
+  body.chat-active h1.headline{font-size:clamp(1.3rem,2.2vw,1.6rem);margin-top:0;}
+  body.chat-active .hero-decor{opacity:.4;}
 
-  /* ---------- AI chat + map (Yandex.Realty-style) ---------- */
+  /* ---------- AI chat (Claude/ChatGPT-style composer) ---------- */
   .yx-shell{
-    max-width:1180px;margin:40px auto 0;display:grid;grid-template-columns:1fr;
+    max-width:820px;margin:40px auto 0;
     border-radius:var(--radius-xl);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-lg);
     background:var(--surface-1);
   }
-  @media (min-width:900px){.yx-shell{grid-template-columns:400px 1fr;min-height:620px;}}
 
-  .yx-chat{display:flex;flex-direction:column;padding:22px 22px 18px;min-height:360px;}
+  .yx-chat{display:flex;flex-direction:column;padding:22px 22px 18px;min-height:280px;}
   .yx-brand-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
   .yx-brand-icon{position:relative;width:32px;height:32px;border-radius:9px;background:var(--primary);color:var(--primary-fixed);display:flex;align-items:center;justify-content:center;font-family:"Epilogue";font-weight:800;font-size:.92rem;}
   .yx-brand-icon .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--secondary);border:2px solid var(--surface-1);}
@@ -204,21 +248,11 @@
   .yx-composer .send{width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--surface-1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
   .yx-composer .send:hover{filter:brightness(1.2);}
 
-  .yx-map{position:relative;background:var(--map-bg);overflow:hidden;min-height:360px;}
-  @media (min-width:900px){.yx-map{min-height:auto;}}
-  .yx-map svg.yx-roads{position:absolute;inset:0;width:100%;height:100%;}
-  .yx-map .park{position:absolute;border-radius:44% 56% 52% 48%/50% 44% 56% 50%;background:var(--map-park);opacity:.9;}
-  .yx-marker{position:absolute;transform:translate(-50%,-50%);background:var(--surface-1);border:1.5px solid var(--line-active);color:var(--ink);font-family:"JetBrains Mono";font-weight:700;font-size:.72rem;padding:6px 10px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);white-space:nowrap;transition:transform .15s;z-index:2;}
-  .yx-marker:hover{transform:translate(-50%,-50%) scale(1.07);}
-  .yx-marker.active{background:var(--map-pin);color:#fff;border-color:var(--map-pin);z-index:3;}
-  .yx-marker .rbadge{position:absolute;top:-9px;left:-9px;width:19px;height:19px;border-radius:50%;background:var(--map-badge);color:#fff;font-size:.6rem;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface-1);}
-  .yx-map-controls{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:4;}
-  .yx-map-controls button{width:34px;height:34px;border-radius:9px;background:var(--surface-1);border:1px solid var(--line);box-shadow:var(--shadow);color:var(--ink);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
-  .yx-map-controls button:hover{background:var(--surface-2);}
-
-  .yx-card{position:absolute;top:14px;left:14px;bottom:14px;width:290px;background:var(--surface-1);border-radius:var(--radius-l);box-shadow:var(--shadow-lg);overflow:hidden;display:flex;flex-direction:column;z-index:5;}
-  @media (max-width:640px){.yx-card{position:static;width:auto;margin:14px;}}
-  .yx-card[hidden]{display:none;}
+  /* ---------- object detail drawer (slides in from the right) ---------- */
+  .drawer-backdrop{display:none;position:fixed;inset:0;background:rgba(15,20,18,.35);z-index:85;}
+  .drawer-backdrop.show{display:block;}
+  .yx-card{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:92vw;background:var(--surface-1);border-left:1px solid var(--line);box-shadow:var(--shadow-lg);overflow-y:auto;display:flex;flex-direction:column;z-index:90;transform:translateX(100%);transition:transform .3s ease;}
+  .yx-card.open{transform:translateX(0);}
   .yx-card-icons{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:2;}
   .yx-card-icons .left-group{display:flex;gap:6px;}
   .yx-icon-btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.94);border:none;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;box-shadow:var(--shadow);}
@@ -438,50 +472,51 @@
   .foot-links a{color:color-mix(in srgb, var(--primary-fixed) 80%, transparent);}
   .foot-links a:hover{color:var(--primary-fixed);}
 </style>
+
 </head>
 <body>
-<header class="topbar">
-  <div class="wrap row">
-    <a class="brand" href="#top">
-      <span class="brand-mark">R</span>
-      <span class="brand-text">
-        <span class="brand-name">RealtorAI</span>
-        <span class="brand-sub">ИИ-РИЭЛТОР ТБИЛИСИ</span>
-      </span>
-    </a>
-    <nav class="links" aria-label="Разделы">
-      <a href="#listings" class="active">Каталог</a>
-      <div class="dropdown">
-        <button type="button">Районы <span class="material-symbols-outlined">expand_more</span></button>
-        <div class="dropdown-panel" id="district-links">
-          <button type="button" data-district="Ваке">Vake (Ваке)</button>
-          <button type="button" data-district="Сабуртало">Saburtalo (Сабуртало)</button>
-          <button type="button" data-district="Сололаки">Sololaki (Сололаки)</button>
-          <button type="button" data-district="Вера">Vera (Вера)</button>
-          <button type="button" data-district="Чугурети">Chugureti (Чугурети)</button>
-        </div>
-      </div>
-      <a href="#calculator">Калькулятор инвестора <span class="roi-badge">ROI AI</span></a>
-      <a href="#analytics">Аналитика рынка</a>
-      <a href="#admin">Админка</a>
-    </nav>
-    <div class="trail">
+<div class="app-shell" id="app-shell">
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+<aside class="app-sidebar" id="app-sidebar">
+  <div class="sb-top">
+    <div class="sb-brand"><span class="mark">R</span><span class="name">RealtorAI</span></div>
+    <button type="button" class="sb-close" id="sb-close" aria-label="Закрыть меню"><span class="material-symbols-outlined">close</span></button>
+  </div>
+  <button type="button" class="sb-newchat" id="sb-newchat"><span class="material-symbols-outlined">add</span><span>Новый чат</span></button>
+  <nav class="sb-nav" aria-label="Категории">
+    <button type="button" data-cat="rent"><span class="material-symbols-outlined">key</span><span>Аренда</span></button>
+    <button type="button" data-cat="newbuild"><span class="material-symbols-outlined">apartment</span><span>Новостройки</span><span class="cnt" id="cnt-newbuild">0</span></button>
+    <button type="button" data-cat="resale"><span class="material-symbols-outlined">home_work</span><span>Вторичка</span><span class="cnt" id="cnt-resale">0</span></button>
+    <button type="button" data-cat="favorites"><span class="material-symbols-outlined">favorite</span><span>Избранное</span><span class="cnt" id="cnt-favorites">0</span></button>
+  </nav>
+  <div class="sb-history">
+    <div class="sb-history-label">История чатов</div>
+    <div id="sb-history-list"></div>
+  </div>
+  <div class="sb-bottom">
+    <button type="button" data-view="chat" class="active"><span class="material-symbols-outlined">forum</span><span>ИИ-поиск и каталог</span></button>
+    <button type="button" data-view="calculator"><span class="material-symbols-outlined">calculate</span><span>Калькулятор инвестора</span></button>
+    <button type="button" data-view="analytics"><span class="material-symbols-outlined">bar_chart</span><span>Аналитика районов</span></button>
+    <button type="button" data-view="admin"><span class="material-symbols-outlined">real_estate_agent</span><span>Панель агента</span></button>
+    <div class="sb-row2">
       <button id="currency-toggle" type="button" aria-label="Переключить валюту">
         <span class="u">USD</span><span style="color:var(--line-active)">/</span><span class="g">₾ GEL</span>
       </button>
-      <button class="icon-btn" id="bookmarks-btn" title="Сохранённые объекты" type="button">
+      <button class="icon-btn" id="bookmarks-btn" title="Избранное" type="button">
         <span class="material-symbols-outlined">bookmark</span>
         <span class="badge-count" id="bookmarks-count">0</span>
       </button>
-      <a class="cta-primary" href="#calculator" style="display:none" id="investor-cta">
-        <span class="material-symbols-outlined">candlestick_chart</span><span>Investor Mode</span>
-      </a>
-      <span class="avatar"><span class="material-symbols-outlined">account_circle</span></span>
     </div>
   </div>
-</header>
+</aside>
 
-<main id="top">
+<div class="app-main" id="app-main">
+<div class="mobile-bar">
+  <button type="button" class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Открыть меню"><span class="material-symbols-outlined">menu</span></button>
+  <span class="sb-brand"><span class="mark" style="width:26px;height:26px;font-size:.8rem;">R</span><span class="name" style="font-size:.92rem;">RealtorAI</span></span>
+</div>
+
+<div class="view active" id="view-chat">
   <section class="hero" id="search">
     <div class="hero-decor"><div class="dot-field"></div><div class="blob blob-a"></div><div class="blob blob-b"></div></div>
     <div class="wrap hero-inner">
@@ -510,25 +545,6 @@
             <button class="send" id="yx-send" type="button" aria-label="Отправить"><span class="material-symbols-outlined">arrow_upward</span></button>
           </div>
         </div>
-        <div class="yx-map" id="yx-map">
-          <svg class="yx-roads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0 30 Q30 20 55 32 T100 25" stroke="var(--map-road)" stroke-width="2.2" fill="none"/>
-            <path d="M0 58 Q35 50 60 60 T100 55" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
-            <path d="M0 82 Q40 75 70 84 T100 80" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
-            <path d="M18 0 Q26 40 20 100" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
-            <path d="M52 0 Q46 45 58 100" stroke="var(--map-road)" stroke-width="2.2" fill="none"/>
-            <path d="M82 0 Q76 50 86 100" stroke="var(--map-road)" stroke-width="1.6" fill="none"/>
-          </svg>
-          <div class="park" style="width:120px;height:100px;top:10%;right:8%;"></div>
-          <div class="park" style="width:90px;height:80px;bottom:14%;left:30%;"></div>
-          <div id="yx-markers"></div>
-          <div class="yx-map-controls">
-            <button type="button" id="yx-zoom-in" aria-label="Приблизить">+</button>
-            <button type="button" id="yx-zoom-out" aria-label="Отдалить">–</button>
-            <button type="button" aria-label="Моё местоположение"><span class="material-symbols-outlined" style="font-size:1.1rem;">navigation</span></button>
-          </div>
-          <div class="yx-card" id="yx-card" hidden></div>
-        </div>
       </div>
     </div>
   </section>
@@ -537,8 +553,8 @@
     <div class="wrap">
       <div class="section-head">
         <div>
-          <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em">apartment</span>Полный каталог</span>
-          <h2 style="margin-top:8px;">Все объявления RealtorAI</h2>
+          <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:1em">apartment</span>Подборка RealtorAI</span>
+          <h2 style="margin-top:8px;" id="results-title">Все объекты в Тбилиси</h2>
         </div>
         <div class="status-line" id="results-status"></div>
       </div>
@@ -548,7 +564,9 @@
       </div>
     </div>
   </section>
+</div>
 
+<div class="view" id="view-calculator">
   <section class="band" id="calculator">
     <div class="wrap">
       <div style="max-width:640px;margin-bottom:44px;">
@@ -657,7 +675,9 @@
       </div>
     </div>
   </section>
+</div>
 
+<div class="view" id="view-analytics">
   <section class="band" id="analytics">
     <div class="wrap">
       <div class="section-head">
@@ -670,7 +690,9 @@
       <div class="bento" id="analytics-grid"></div>
     </div>
   </section>
+</div>
 
+<div class="view" id="view-admin">
   <section class="band" id="admin">
     <div class="wrap">
       <div class="section-head">
@@ -761,7 +783,7 @@
       </div>
     </div>
   </section>
-</main>
+</div>
 
 <footer>
   <div class="wrap foot-row">
@@ -769,14 +791,13 @@
       <div class="foot-brand"><span class="mark">R</span><span class="name">RealtorAI</span></div>
       <p class="foot-note">© 2026 RealtorAI Real Estate Intelligence. Тбилиси, Грузия. Прототип продукта — объявления и метрики вымышлены для демонстрации, не инвестиционная рекомендация.</p>
     </div>
-    <div class="foot-links">
-      <a href="#calculator">Algorithmic Cap Rates</a>
-      <a href="#analytics">Tbilisi Market Index</a>
-      <a href="#listings">Sololaki Heritage Fund</a>
-      <a href="#admin">Панель агента</a>
-    </div>
   </div>
 </footer>
+</div>
+
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<div class="yx-card" id="yx-card"></div>
+</div>
 
 <script>
 (function(){
@@ -954,24 +975,84 @@
     return {score:score, why:why};
   }
   var catalogVisible = 6;
+  var currentList = [];
 
-  function renderCatalogGrid(){
+  /* ---------------- category filters (sidebar nav) ---------------- */
+  var CATS = {
+    rent:      { label:"Аренда в Тбилиси",        note:"Показана расчётная аренда в месяц (долгосрочный контракт)." },
+    newbuild:  { label:"Новостройки Тбилиси",     note:"Объекты с пометкой «новостройка» в описании." },
+    resale:    { label:"Вторичный рынок Тбилиси", note:"Объекты вне новостроек — вторичное жильё." },
+    favorites: { label:"Избранное",               note:"Объекты, сохранённые вами через значок закладки." }
+  };
+  var state = { category:null };
+
+  function isNewBuild(a){ return a.tags.indexOf("новостройка") !== -1; }
+  function categoryList(cat){
+    var all = allApts();
+    if (cat==="newbuild") return all.filter(isNewBuild);
+    if (cat==="resale") return all.filter(function(a){ return !isNewBuild(a); });
+    if (cat==="favorites") return all.filter(function(a){ return SAVED.indexOf(a.id)!==-1; });
+    return all.slice();
+  }
+  function updateCategoryCounts(){
+    document.getElementById("cnt-newbuild").textContent = categoryList("newbuild").length;
+    document.getElementById("cnt-resale").textContent = categoryList("resale").length;
+    updateFavCount();
+  }
+  function updateFavCount(){
+    document.getElementById("cnt-favorites").textContent = SAVED.length;
+    document.getElementById("bookmarks-count").textContent = SAVED.length;
+  }
+  function clearCategoryActive(){
+    state.category = null;
+    document.querySelectorAll(".sb-nav button[data-cat]").forEach(function(b){ b.classList.remove("active"); });
+  }
+  function clearHistoryActive(){
+    document.querySelectorAll(".sb-hist-item").forEach(function(b){ b.classList.remove("active"); });
+  }
+  function setCategory(cat){
+    state.category = cat;
+    yx.rentMode = (cat==="rent");
+    document.body.classList.add("chat-active");
+    document.querySelectorAll(".sb-nav button[data-cat]").forEach(function(b){ b.classList.toggle("active", b.dataset.cat===cat); });
+    document.querySelectorAll(".sb-hist-item").forEach(function(b){ b.classList.remove("active"); });
+    closeDrawer();
+    var cfg = CATS[cat];
+    var list = categoryList(cat);
+    catalogVisible = 6;
+    threadEl().innerHTML = "";
+    yx.hiddenIds = [];
+    updateHiddenChip();
+    document.getElementById("results-title").textContent = cfg.label;
+    renderAiBlock({
+      title: cfg.label,
+      breakdown: (list.length ? list.length + " объект" + (list.length===1?"":list.length<5?"а":"ов") + " по этому фильтру." : "Пока нет объектов по этому фильтру.") + " " + cfg.note
+    });
+    renderResultsWall(list);
+  }
+
+  function renderResultsWall(list){
+    currentList = list;
     var grid = document.getElementById("results-grid");
     var status = document.getElementById("results-status");
-    var all = allApts().slice().sort(function(a,b){ return b.rating-a.rating; });
-    status.innerHTML = '<span>Всего объектов: <b>'+all.length+'</b></span>';
-    var shown = all.slice(0, catalogVisible);
+    var rentMode = !!yx.rentMode;
+    var visible = list.filter(function(a){ return yx.hiddenIds.indexOf(a.id)===-1; });
+    status.innerHTML = '<span>Найдено объектов: <b>'+visible.length+'</b></span>';
+    var shown = visible.slice(0, catalogVisible);
 
     grid.innerHTML = shown.map(function(a){
       var subtitle = (a.address ? a.address + ' • ' : '') + a.area + ' м² • ' + a.roomsLabel + (a.floor ? ' • ' + a.floor + '/' + (a.floorsTotal||a.floor) + ' этаж' : '');
       var growth3 = priceAt(a,3)/a.price - 1;
       var be = breakEvenYears(a);
+      var priceBlock = rentMode
+        ? '<div class="price-row"><span class="price-main"><span class="price-usd">'+fmtUSD(monthlyLong(a))+'/мес</span><span class="price-gel">≈ '+fmtGEL(monthlyLong(a))+'/мес</span></span></div>'
+        : '<div class="price-row">' + priceRow(a.price) + '<span class="price-m2">' + fmtUSD(a.price/a.area) + ' / м²</span></div>';
       return (
         '<article class="r-card" data-listing-id="'+a.id+'">' +
           mediaHTML(a, {match:null}) +
           '<div class="r-body">' +
             '<div>' +
-              '<div class="price-row">' + priceRow(a.price) + '<span class="price-m2">' + fmtUSD(a.price/a.area) + ' / м²</span></div>' +
+              priceBlock +
               '<h3 class="r-title">' + a.title + '</h3>' +
               '<p class="r-sub">' + subtitle + '</p>' +
             '</div>' +
@@ -983,7 +1064,7 @@
             '</div>' +
             '<div class="r-actions">' +
               '<button class="btn-cal" type="button" data-calc="'+a.id+'"><span class="material-symbols-outlined">calculate</span><span>В калькулятор</span></button>' +
-              '<button class="btn-more" type="button" data-locate="'+a.id+'">На карте</button>' +
+              '<button class="btn-more" type="button" data-open="'+a.id+'">Подробнее</button>' +
             '</div>' +
           '</div>' +
         '</article>'
@@ -991,7 +1072,7 @@
     }).join("");
 
     var moreRow = document.getElementById("show-more-row");
-    var remaining = all.length - shown.length;
+    var remaining = visible.length - shown.length;
     if (remaining > 0){
       moreRow.hidden = false;
       document.getElementById("show-more-label").textContent = "Показать ещё " + remaining + " вариант" + (remaining===1?"":remaining<5?"а":"ов");
@@ -1002,7 +1083,7 @@
 
   document.getElementById("show-more-btn").addEventListener("click", function(){
     catalogVisible += 6;
-    renderCatalogGrid();
+    renderResultsWall(currentList);
   });
   document.getElementById("results-grid").addEventListener("click", function(e){
     var save = e.target.closest("[data-save]");
@@ -1013,25 +1094,26 @@
       saveSaved(SAVED);
       save.classList.toggle("on");
       save.querySelector(".material-symbols-outlined").classList.toggle("on");
-      document.getElementById("bookmarks-count").textContent = SAVED.length;
+      updateFavCount();
+      if (state.category==="favorites") renderResultsWall(categoryList("favorites"));
       if (yx.selectedId === id) renderCard(id);
       return;
     }
     var calc = e.target.closest("[data-calc]");
     if (calc){
       selectApt(calc.dataset.calc);
-      document.getElementById("calculator").scrollIntoView({behavior:"smooth", block:"start"});
+      switchView("calculator");
       return;
     }
-    var locate = e.target.closest("[data-locate]");
-    if (locate){
-      document.getElementById("search").scrollIntoView({behavior:"smooth", block:"start"});
-      selectListing(locate.dataset.locate);
+    var open = e.target.closest("[data-open]");
+    if (open){
+      selectListing(open.dataset.open);
+      openDrawer();
     }
   });
 
   /* ---------------- AI chat + map (Yandex.Realty-style) ---------------- */
-  var yx = { results: [], selectedId: null, hiddenIds: [], investing: null, zoom: 1 };
+  var yx = { results: [], selectedId: null, hiddenIds: [], investing: null, rentMode: false };
   var AGENT_FEE_PCT = 0.03;
 
   function ruPlural(n, forms){
@@ -1132,37 +1214,27 @@
     }
   }
 
-  function renderMap(list){
-    yx.results = list;
-    var wrap = document.getElementById("yx-markers");
-    var visible = list.filter(function(a){ return yx.hiddenIds.indexOf(a.id)===-1; });
-    wrap.innerHTML = visible.map(function(a){
-      var seed = hashInt(a.id);
-      var x = 44 + (seed % 48);
-      var y = 8 + (Math.floor(seed/48) % 80);
-      return '<button type="button" class="yx-marker'+(a.id===yx.selectedId?' active':'')+'" style="left:'+x+'%;top:'+y+'%;" data-marker="'+a.id+'">' +
-        '<span class="rbadge">'+roomBadgeLabel(a)+'</span>'+abbrPrice(a.price) +
-      '</button>';
-    }).join("");
-    wrap.querySelectorAll("[data-marker]").forEach(function(btn){
-      btn.addEventListener("click", function(){ selectListing(btn.dataset.marker); });
-    });
+  function openDrawer(){
+    document.getElementById("yx-card").classList.add("open");
+    document.getElementById("drawer-backdrop").classList.add("show");
+  }
+  function closeDrawer(){
+    document.getElementById("yx-card").classList.remove("open");
+    document.getElementById("drawer-backdrop").classList.remove("show");
   }
 
   function selectListing(id){
     yx.selectedId = id;
-    document.querySelectorAll(".yx-marker").forEach(function(m){ m.classList.toggle("active", m.dataset.marker===id); });
     renderCard(id);
   }
 
   function renderCard(id){
     var card = document.getElementById("yx-card");
     var a = id ? allApts().find(function(x){ return x.id===id; }) : null;
-    if (!a){ card.hidden = true; card.innerHTML = ""; return; }
+    if (!a){ closeDrawer(); card.innerHTML = ""; return; }
     var fee = a.price * AGENT_FEE_PCT;
     var total = a.price + fee;
     var saved = SAVED.indexOf(a.id) !== -1;
-    card.hidden = false;
     card.innerHTML =
       '<div class="yx-card-icons">' +
         '<div class="left-group">' +
@@ -1189,30 +1261,34 @@
         '<button type="button" class="yx-calc-link" id="yx-card-calc">Открыть в инвесткалькуляторе →</button>' +
       '</div>';
 
-    document.getElementById("yx-card-close").addEventListener("click", function(){ card.hidden = true; });
+    document.getElementById("yx-card-close").addEventListener("click", closeDrawer);
     document.getElementById("yx-card-hide").addEventListener("click", function(){
       yx.hiddenIds.push(a.id);
-      renderMap(yx.results);
       updateHiddenChip();
-      card.hidden = true;
+      renderResultsWall(currentList);
+      closeDrawer();
       toastQuick("Объект скрыт");
     });
     document.getElementById("yx-card-save").addEventListener("click", function(){
       var idx = SAVED.indexOf(a.id);
       if (idx===-1) SAVED.push(a.id); else SAVED.splice(idx,1);
       saveSaved(SAVED);
-      document.getElementById("bookmarks-count").textContent = SAVED.length;
+      updateFavCount();
       renderCard(a.id);
-      renderCatalogGrid();
+      if (state.category==="favorites") renderResultsWall(categoryList("favorites"));
+      else renderResultsWall(currentList);
     });
     document.getElementById("yx-card-open").addEventListener("click", function(){
-      document.getElementById("listings").scrollIntoView({behavior:"smooth", block:"start"});
+      closeDrawer();
+      switchView("chat");
+      document.getElementById("results-grid").scrollIntoView({behavior:"smooth", block:"start"});
       var target = document.querySelector('[data-listing-id="'+a.id+'"]');
       if (target){ target.classList.add("flash"); setTimeout(function(){ target.classList.remove("flash"); }, 1600); }
     });
     document.getElementById("yx-card-calc").addEventListener("click", function(){
       selectApt(a.id);
-      document.getElementById("calculator").scrollIntoView({behavior:"smooth", block:"start"});
+      closeDrawer();
+      switchView("calculator");
     });
     document.getElementById("yx-reveal-btn").addEventListener("click", function(){
       var phone = demoPhone(a.id);
@@ -1225,12 +1301,12 @@
   function answerQ2(min, max){
     var list = yx.results.filter(function(a){ return a.price>=min && a.price<max; });
     if (list.length===0) list = yx.results.slice(0,4);
-    renderMap(list);
-    selectListing(list[0] ? list[0].id : null);
+    catalogVisible = 6;
+    renderResultsWall(list);
     appendThinking(function(){
       renderAiBlock({
         title: "Вот что подобрал ИИ",
-        breakdown: list.length ? (list.length + " вариант" + (list.length===1?"":list.length<5?"а":"ов") + " отмечено на карте.") : "Под такие условия объектов не нашлось — попробуйте расширить бюджет."
+        breakdown: list.length ? (list.length + " вариант" + (list.length===1?"":list.length<5?"а":"ов") + " показано ниже, в подборке.") : "Под такие условия объектов не нашлось — попробуйте расширить бюджет."
       });
     });
   }
@@ -1240,7 +1316,9 @@
     if (investing===true) list.sort(function(a,b){ return b.yieldLong-a.yieldLong; });
     else if (investing===false) list.sort(function(a,b){ return b.area-a.area; });
     else list.sort(function(a,b){ return b.rating-a.rating; });
-    renderMap(list);
+    yx.results = list;
+    catalogVisible = 6;
+    renderResultsWall(list);
     appendThinking(function(){
       renderAiBlock({
         lead: investing===true ? "Учёл: ищете для инвестиций — выше варианты с высокой доходностью." : investing===false ? "Учёл: подбираю для жизни — выше просторные варианты." : "Хорошо, ориентируюсь на рейтинг и доходность.",
@@ -1256,9 +1334,12 @@
   }
   function startConversation(){
     threadEl().innerHTML = "";
-    yx.hiddenIds = []; yx.investing = null;
+    yx.hiddenIds = []; yx.investing = null; yx.rentMode = false;
     updateHiddenChip();
+    document.getElementById("results-title").textContent = "Все объекты в Тбилиси";
     var all = allApts().slice().sort(function(a,b){ return b.rating-a.rating; });
+    yx.results = all;
+    catalogVisible = 6;
     renderAiBlock({
       title: "Нашёл " + all.length + " объектов в Тбилиси",
       lead: "проверенные объекты с ИИ-оценкой доходности",
@@ -1270,12 +1351,15 @@
         {label:"Пока не важно", onSelect:function(){ answerQ1(null); }}
       ]
     });
-    renderMap(all);
-    selectListing(all[0] ? all[0].id : null);
+    renderResultsWall(all);
   }
   function runFreeText(text){
     text = (text||"").trim();
     if (!text) return;
+    clearCategoryActive();
+    clearHistoryActive();
+    document.body.classList.add("chat-active");
+    yx.rentMode = false;
     appendUserLine(text);
     document.getElementById("yx-input").value = "";
     appendThinking(function(){
@@ -1284,8 +1368,10 @@
       var relevant = scored.filter(function(s){ return s.score>15; });
       var fallback = relevant.length===0;
       var list = (fallback ? scored : relevant).map(function(s){ return s.apt; });
-      renderMap(list);
-      selectListing(list[0] ? list[0].id : null);
+      yx.results = list;
+      catalogVisible = 6;
+      document.getElementById("results-title").textContent = fallback ? "Популярные варианты" : "Подходящие объекты";
+      renderResultsWall(list);
       renderAiBlock({
         title: fallback ? "Точных совпадений нет" : ("Нашёл " + list.length + " подходящих объект" + (list.length===1?"":list.length<5?"а":"ов")),
         breakdown: fallback ? "Показываю популярные варианты по рейтингу." : breakdownLine(list)
@@ -1295,19 +1381,16 @@
 
   document.getElementById("yx-send").addEventListener("click", function(){ runFreeText(document.getElementById("yx-input").value); });
   document.getElementById("yx-input").addEventListener("keydown", function(e){ if (e.key==="Enter"){ e.preventDefault(); runFreeText(this.value); } });
-  document.getElementById("yx-restart").addEventListener("click", startConversation);
+  document.getElementById("yx-restart").addEventListener("click", function(){
+    clearCategoryActive();
+    clearHistoryActive();
+    startConversation();
+  });
   document.getElementById("yx-restore-hidden").addEventListener("click", function(){
     yx.hiddenIds = [];
-    renderMap(yx.results);
+    renderResultsWall(currentList);
     updateHiddenChip();
     toastQuick("Скрытые объекты возвращены");
-  });
-  document.getElementById("district-links").addEventListener("click", function(e){
-    var btn = e.target.closest("[data-district]"); if (!btn) return;
-    var text = "Квартира в районе " + btn.dataset.district;
-    document.getElementById("yx-input").value = text;
-    runFreeText(text);
-    document.getElementById("search").scrollIntoView({behavior:"smooth", block:"start"});
   });
   document.getElementById("yx-share").addEventListener("click", function(){
     var url = location.href;
@@ -1325,20 +1408,72 @@
     document.getElementById("yx-like").classList.remove("active");
     toastQuick("Учтём в следующий раз");
   });
-  document.getElementById("yx-zoom-in").addEventListener("click", function(){
-    yx.zoom = Math.min(1.5, yx.zoom + 0.15);
-    document.getElementById("yx-markers").style.transform = "scale(" + yx.zoom + ")";
-  });
-  document.getElementById("yx-zoom-out").addEventListener("click", function(){
-    yx.zoom = Math.max(0.7, yx.zoom - 0.15);
-    document.getElementById("yx-markers").style.transform = "scale(" + yx.zoom + ")";
-  });
+  document.getElementById("drawer-backdrop").addEventListener("click", closeDrawer);
 
   /* ---------------- currency toggle ---------------- */
   document.getElementById("currency-toggle").addEventListener("click", function(){
     document.body.classList.toggle("gel-active");
   });
-  document.getElementById("bookmarks-count").textContent = SAVED.length;
+  updateFavCount();
+
+  /* ---------------- sidebar: categories, view switch, new chat, history, mobile ---------------- */
+  function switchView(name){
+    document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("active", v.id === "view-"+name); });
+    document.querySelectorAll(".sb-bottom [data-view]").forEach(function(b){ b.classList.toggle("active", b.dataset.view===name); });
+    window.scrollTo(0,0);
+  }
+  function closeSidebarMobile(){ document.getElementById("app-shell").classList.remove("sb-open"); }
+  function openSidebarMobile(){ document.getElementById("app-shell").classList.add("sb-open"); }
+
+  document.querySelector(".sb-nav").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-cat]"); if (!btn) return;
+    switchView("chat");
+    setCategory(btn.dataset.cat);
+    closeSidebarMobile();
+  });
+  document.querySelector(".sb-bottom").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-view]"); if (!btn) return;
+    switchView(btn.dataset.view);
+    closeSidebarMobile();
+  });
+  document.getElementById("bookmarks-btn").addEventListener("click", function(){
+    switchView("chat");
+    setCategory("favorites");
+    closeSidebarMobile();
+  });
+  document.getElementById("sb-newchat").addEventListener("click", function(){
+    clearCategoryActive();
+    clearHistoryActive();
+    switchView("chat");
+    document.body.classList.remove("chat-active");
+    startConversation();
+    closeSidebarMobile();
+  });
+  document.getElementById("mobile-menu-btn").addEventListener("click", openSidebarMobile);
+  document.getElementById("sb-close").addEventListener("click", closeSidebarMobile);
+  document.getElementById("sidebar-backdrop").addEventListener("click", closeSidebarMobile);
+
+  var CHAT_HISTORY = [
+    { id:"h1", title:"Новостройка в Ваке с террасой", run:function(){ runFreeText("Новостройка в Ваке с террасой"); } },
+    { id:"h2", title:"Аренда у метро Марджанишвили", run:function(){ setCategory("rent"); } },
+    { id:"h3", title:"Историческая квартира в Сололаки", run:function(){ runFreeText("Историческая квартира в Сололаки для инвестиций"); } },
+    { id:"h4", title:"Бюджетная студия для студента", run:function(){ runFreeText("Бюджетная студия для студента до 65000"); } }
+  ];
+  function renderHistory(){
+    document.getElementById("sb-history-list").innerHTML = CHAT_HISTORY.map(function(h){
+      return '<button type="button" class="sb-hist-item" data-hist="'+h.id+'"><span class="material-symbols-outlined">chat_bubble</span><span>'+h.title+'</span></button>';
+    }).join("");
+  }
+  document.getElementById("sb-history-list").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-hist]"); if (!btn) return;
+    clearCategoryActive();
+    clearHistoryActive();
+    btn.classList.add("active");
+    switchView("chat");
+    var h = CHAT_HISTORY.find(function(x){ return x.id===btn.dataset.hist; });
+    if (h) h.run();
+    closeSidebarMobile();
+  });
 
   /* ---------------- calculator ---------------- */
   var calcState = { mode:"hybrid", horizon:5 };
@@ -1554,7 +1689,8 @@
     populateSelect();
     renderAnalytics();
     renderAdminList();
-    renderCatalogGrid();
+    updateCategoryCounts();
+    renderResultsWall(state.category ? categoryList(state.category) : (yx.results.length ? yx.results : allApts()));
     if (!calcState.aptId) calcState.aptId = allApts()[0].id;
     document.getElementById("c-select").value = calcState.aptId;
     recompute();
@@ -1562,9 +1698,12 @@
 
   selectApt(allApts()[0].id);
   setMode("hybrid");
-  renderAll();
+  renderHistory();
+  updateCategoryCounts();
   startConversation();
+  renderAll();
 })();
 </script>
+
 </body>
 </html>
