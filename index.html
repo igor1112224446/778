@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: стартовый экран с витриной объектов и поиском ChatGPT-стиля (в духе Недвижимость AI), чат-режим с картой, боковая панель с историей чатов и фильтрами «Аренда», «Новостройки», «Вторичка», «Избранное», карточка объекта, инвестиционный калькулятор, аналитика районов и панель агента.">
+<meta name="description" content="RealtorAI — ИИ-риэлтор для Тбилиси: стартовый экран с витриной объектов и поиском ChatGPT-стиля, чат-режим с картой, живой ИИ на базе Claude API для свободного общения о недвижимости Грузии, боковая панель с историей чатов и фильтрами «Аренда», «Новостройки», «Вторичка», «Избранное», инвестиционный калькулятор, аналитика районов и панель агента.">
 <title>RealtorAI</title>
 <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@200..600,0..1&display=swap" rel="stylesheet">
@@ -158,6 +158,20 @@
   .sb-row2{display:flex;gap:6px;margin-top:4px;}
   .sb-row2 #currency-toggle{flex:1;justify-content:center;}
   .sb-row2 .icon-btn{border:1px solid var(--line-active);}
+  #ai-settings-btn{position:relative;}
+  .ai-status-dot{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--ink-soft);opacity:.4;flex:none;}
+  .ai-status-dot.on{background:var(--good);opacity:1;box-shadow:0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent);}
+
+  /* ---------- modal (AI settings) ---------- */
+  .modal-backdrop{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(15,20,18,.5);z-index:120;padding:20px;}
+  .modal-backdrop[hidden]{display:none;}
+  .modal{width:100%;max-width:440px;max-height:90vh;overflow-y:auto;background:var(--surface-1);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:24px;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .modal-head h3{display:flex;align-items:center;gap:9px;font-size:1.15rem;}
+  .modal-head h3 .material-symbols-outlined{color:var(--secondary);}
+  .modal-desc{color:var(--ink-soft);font-size:.88rem;line-height:1.5;margin:0 0 18px;}
+  .modal-hint{font-size:.76rem;color:var(--ink-soft);line-height:1.5;margin:6px 0 0;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
 
   .mobile-bar{display:none;position:sticky;top:0;z-index:40;align-items:center;gap:10px;padding:12px 16px;background:color-mix(in srgb, var(--surface-1) 90%, transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
   .mobile-menu-btn{border:none;background:none;color:var(--ink);cursor:pointer;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none;}
@@ -236,6 +250,10 @@
   .yx-ai-block p.lead{display:flex;align-items:center;gap:7px;color:var(--ink-soft);font-size:.92rem;margin-top:8px;}
   .yx-ai-block p.lead .material-symbols-outlined{font-size:1rem;color:var(--secondary);}
   .yx-ai-block p.breakdown{font-size:.9rem;color:var(--ink-soft);margin-top:8px;line-height:1.55;}
+  .yx-ai-text p{margin:0 0 10px;font-size:.92rem;color:var(--ink);line-height:1.55;}
+  .yx-ai-text p:last-child{margin-bottom:0;}
+  .yx-ai-text ul{margin:0 0 10px;padding-left:20px;}
+  .yx-ai-text li{font-size:.92rem;color:var(--ink);line-height:1.5;margin-bottom:4px;}
   .yx-question{margin-top:14px;font-size:.94rem;color:var(--ink);font-weight:600;}
   .yx-options{margin-top:6px;display:flex;flex-direction:column;}
   .yx-option{display:flex;align-items:center;gap:12px;padding:12px 4px;border:none;background:none;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;width:100%;font-family:"Manrope";font-size:.92rem;color:var(--ink);}
@@ -549,6 +567,10 @@
     <button type="button" data-view="calculator"><span class="material-symbols-outlined">calculate</span><span>Калькулятор инвестора</span></button>
     <button type="button" data-view="analytics"><span class="material-symbols-outlined">bar_chart</span><span>Аналитика районов</span></button>
     <button type="button" data-view="admin"><span class="material-symbols-outlined">real_estate_agent</span><span>Панель агента</span></button>
+    <button type="button" id="ai-settings-btn">
+      <span class="material-symbols-outlined">smart_toy</span><span>Настройки ИИ</span>
+      <span class="ai-status-dot" id="ai-status-dot" title="Живой ИИ выключен"></span>
+    </button>
     <div class="sb-row2">
       <button id="currency-toggle" type="button" aria-label="Переключить валюту">
         <span class="u">USD</span><span style="color:var(--line-active)">/</span><span class="g">₾ GEL</span>
@@ -560,6 +582,34 @@
     </div>
   </div>
 </aside>
+
+<div class="modal-backdrop" id="ai-modal-backdrop" hidden>
+  <div class="modal" role="dialog" aria-label="Настройки ИИ">
+    <div class="modal-head">
+      <h3><span class="material-symbols-outlined">smart_toy</span>Настройки ИИ</h3>
+      <button type="button" class="yx-icon-btn" id="ai-modal-close" title="Закрыть"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <p class="modal-desc">Подключите модель Claude, чтобы общаться с RealtorAI живым ИИ — свободно, на любые темы недвижимости Грузии (и не только), с опорой на каталог объектов сайта.</p>
+    <div class="a-field">
+      <label for="ai-key-input">API-ключ Anthropic</label>
+      <input type="password" id="ai-key-input" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+      <p class="modal-hint" id="ai-key-hint">Ключ не задан — сейчас работает демо-эвристика.</p>
+    </div>
+    <div class="a-field">
+      <label for="ai-model-select">Модель</label>
+      <select id="ai-model-select">
+        <option value="claude-opus-5">Claude Opus 5 — самая умная</option>
+        <option value="claude-sonnet-5">Claude Sonnet 5 — баланс скорости и цены</option>
+        <option value="claude-haiku-4-5">Claude Haiku 4.5 — самая быстрая и дешёвая</option>
+      </select>
+    </div>
+    <p class="modal-hint">Ключ хранится только в этом браузере (localStorage) и отправляется напрямую в api.anthropic.com — ни на какой другой сервер. Не используйте личный ключ на странице, которой делитесь с посторонними, и не публикуйте её с сохранённым ключом.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-outline" id="ai-key-clear">Удалить ключ</button>
+      <button type="button" class="cta-primary" id="ai-key-save">Сохранить</button>
+    </div>
+  </div>
+</div>
 
 <div class="app-main" id="app-main">
 <div class="mobile-bar">
@@ -892,6 +942,14 @@
   var TAX = 0.05;
   var LS_KEY = "realtorai_custom_listings_v2";
   var LS_SAVED = "realtorai_saved_v1";
+  var LS_AI_KEY = "realtorai_ai_key_v1";
+  var LS_AI_MODEL = "realtorai_ai_model_v1";
+  var AI_MODELS = ["claude-opus-5","claude-sonnet-5","claude-haiku-4-5"];
+
+  function loadAIKey(){ try{ return localStorage.getItem(LS_AI_KEY) || ""; }catch(e){ return ""; } }
+  function saveAIKey(key){ try{ if (key) localStorage.setItem(LS_AI_KEY, key); else localStorage.removeItem(LS_AI_KEY); }catch(e){} }
+  function loadAIModel(){ try{ var m = localStorage.getItem(LS_AI_MODEL); return AI_MODELS.indexOf(m)!==-1 ? m : AI_MODELS[0]; }catch(e){ return AI_MODELS[0]; } }
+  function saveAIModel(model){ try{ localStorage.setItem(LS_AI_MODEL, model); }catch(e){} }
 
   function fmtUSD(n){ return "$" + Math.round(n).toLocaleString("en-US"); }
   function fmtGEL(usd){ return Math.round(usd*GEL_RATE).toLocaleString("ru-RU") + " ₾"; }
@@ -959,6 +1017,119 @@
   function monthlyHybrid(a){ return (monthlyShortNet(a)*6 + monthlyLong(a)*6)/12; }
   function monthlyByMode(a, mode){ return mode==="short"?monthlyShortNet(a):mode==="hybrid"?monthlyHybrid(a):monthlyLong(a); }
   function breakEvenYears(a){ return a.price / (monthlyLong(a)*12); }
+
+  /* ---------------- live AI (Claude API, direct from the browser) ---------------- */
+  var SHOW_LISTINGS_TOOL = {
+    name: "show_listings",
+    description: "Показать пользователю эти объекты каталога Тбилиси на карте/в подборке сайта. Вызывай только с id из каталога, который дан в системном промпте. Используй, когда рекомендуешь или упоминаешь конкретные объекты.",
+    input_schema: {
+      type: "object",
+      properties: {
+        ids: { type: "array", items: { type: "string" }, description: "id объектов из каталога, самые релевантные — первыми" }
+      },
+      required: ["ids"]
+    }
+  };
+  var aiMessages = [];
+
+  function catalogForAI(){
+    return allApts().map(function(a){
+      return {
+        id: a.id, title: a.title, district: a.district, address: a.address || null,
+        rooms: a.rooms, roomsLabel: a.roomsLabel, area: a.area, floor: a.floor, floorsTotal: a.floorsTotal, year: a.year,
+        priceUSD: Math.round(a.price), pricePerM2USD: Math.round(a.price/a.area),
+        tags: a.tags, description: a.desc,
+        rentLongUSDPerMonth: Math.round(monthlyLong(a)),
+        capRatePct: Math.round(a.yieldLong*1000)/10,
+        dailyRateUSD: a.dailyRate, occupancyPct: Math.round(a.occ*100),
+        priceGrowthPctPerYear: Math.round(a.growth*1000)/10,
+        breakEvenYears: Math.round(breakEvenYears(a)*10)/10
+      };
+    });
+  }
+
+  function buildSystemPrompt(){
+    return (
+      "Ты — RealtorAI, ИИ-риэлтор сайта RealtorAI (мокап). Помогаешь людям с недвижимостью Тбилиси и Грузии в целом: " +
+      "подбираешь квартиры из каталога, объясняешь инвестиционные метрики (доходность аренды, окупаемость, рост цены), " +
+      "и свободно отвечаешь на смежные и общие вопросы — аренда, ВНЖ/резидентство, налоги, процесс покупки, районы, банки, визы и так далее, " +
+      "а также можешь просто поддержать разговор на другие темы, если пользователь спросит. Отвечай на языке вопроса (по умолчанию по-русски), " +
+      "дружелюбно и по делу, без воды. Держи ответы компактными (обычно 2-6 предложений или короткий список) — это чат в боковой панели, не эссе.\n\n" +
+      "Ниже — актуальный каталог объектов сайта в JSON (цены в USD, все объекты и цифры вымышлены для демо — честно говори об этом, если спросят): " +
+      "если рекомендуешь или упоминаешь конкретные объекты из этого списка, вызови инструмент show_listings с их id, чтобы сайт показал их пользователю. " +
+      "Не выдумывай объекты и id, которых нет в списке; если каталог не подходит под запрос — так и скажи и посоветуй, что изменить в критериях.\n\n" +
+      JSON.stringify(catalogForAI())
+    );
+  }
+
+  function aiErrorMessage(status, body){
+    if (status === 401) return "Неверный API-ключ Claude. Проверьте его в настройках ИИ.";
+    if (status === 429) return "Превышен лимит запросов к Claude API. Попробуйте через минуту.";
+    if (status === 400 && body && /credit|billing/i.test(body)) return "Проблема с оплатой на аккаунте Anthropic — проверьте баланс.";
+    if (status) return "Claude API вернул ошибку " + status + ". " + (body ? String(body).slice(0,180) : "");
+    return "Не удалось связаться с api.anthropic.com — проверьте соединение и ключ.";
+  }
+
+  function anthropicRequest(model, messages, key){
+    var body = {
+      model: model,
+      max_tokens: 1024,
+      system: buildSystemPrompt(),
+      tools: [SHOW_LISTINGS_TOOL],
+      messages: messages
+    };
+    if (model !== "claude-haiku-4-5") body.output_config = { effort: "low" };
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify(body)
+    }).then(function(res){
+      return res.text().then(function(text){
+        var data = null; try{ data = JSON.parse(text); }catch(e){}
+        if (!res.ok){
+          var msg = (data && data.error && data.error.message) || text;
+          throw new Error(aiErrorMessage(res.status, msg));
+        }
+        return data;
+      });
+    });
+  }
+
+  function callClaudeAPI(userText){
+    var key = loadAIKey();
+    var model = loadAIModel();
+    aiMessages.push({ role: "user", content: userText });
+    var shownIds = [];
+    function loop(guard){
+      return anthropicRequest(model, aiMessages, key).then(function(response){
+        if (response.stop_reason === "tool_use" && guard < 3){
+          aiMessages.push({ role: "assistant", content: response.content });
+          var toolResults = [];
+          response.content.forEach(function(block){
+            if (block.type !== "tool_use") return;
+            if (block.name === "show_listings"){
+              var ids = (block.input && block.input.ids) || [];
+              shownIds = shownIds.concat(ids);
+              toolResults.push({ type: "tool_result", tool_use_id: block.id, content: "Показано пользователю: " + ids.length + " объект(ов)." });
+            } else {
+              toolResults.push({ type: "tool_result", tool_use_id: block.id, content: "Неизвестный инструмент.", is_error: true });
+            }
+          });
+          aiMessages.push({ role: "user", content: toolResults });
+          return loop(guard + 1);
+        }
+        var textParts = response.content.filter(function(b){ return b.type==="text"; }).map(function(b){ return b.text; });
+        aiMessages.push({ role: "assistant", content: response.content });
+        return { text: textParts.join("\n\n").trim() || "…", shownIds: shownIds };
+      });
+    }
+    return loop(0);
+  }
 
   /* ---------------- media illustration ---------------- */
   function mediaHTML(a, opts){
@@ -1109,6 +1280,7 @@
     clearCategoryActive();
     clearHistoryActive();
     threadEl().innerHTML = "";
+    aiMessages = [];
     yx.hiddenIds = []; yx.investing = null; yx.rentMode = false; yx.results = [];
     updateHiddenChip();
     closeCard(document.getElementById("yx-card"));
@@ -1123,6 +1295,7 @@
     var cfg = CATS[cat];
     var list = categoryList(cat);
     threadEl().innerHTML = "";
+    aiMessages = [];
     yx.hiddenIds = [];
     updateHiddenChip();
     renderAiBlock({
@@ -1278,6 +1451,40 @@
     threadEl().appendChild(div);
     scrollThreadToBottom();
     setTimeout(function(){ div.remove(); cb(); }, delay || 550);
+  }
+  function appendThinkingPersistent(){
+    var div = document.createElement("div");
+    div.className = "yx-thinking";
+    div.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">progress_activity</span> ИИ думает…';
+    threadEl().appendChild(div);
+    scrollThreadToBottom();
+    return div;
+  }
+  function escapeHTML(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function inlineMd(s){ return escapeHTML(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"); }
+  function mdLiteToHTML(text){
+    var lines = String(text).split("\n");
+    var html = "", inList = false;
+    lines.forEach(function(line){
+      var trimmed = line.trim();
+      if (/^[-•]\s+/.test(trimmed)){
+        if (!inList){ html += "<ul>"; inList = true; }
+        html += "<li>" + inlineMd(trimmed.replace(/^[-•]\s+/, "")) + "</li>";
+      } else {
+        if (inList){ html += "</ul>"; inList = false; }
+        if (trimmed) html += "<p>" + inlineMd(trimmed) + "</p>";
+      }
+    });
+    if (inList) html += "</ul>";
+    return html || "<p></p>";
+  }
+  function renderAiText(text){
+    var div = document.createElement("div");
+    div.className = "yx-ai-block yx-ai-text";
+    div.innerHTML = mdLiteToHTML(text);
+    threadEl().appendChild(div);
+    scrollThreadToBottom();
+    return div;
   }
   function renderAiBlock(cfg){
     var html = '<div class="yx-ai-block">';
@@ -1487,6 +1694,7 @@
     clearCategoryActive();
     clearHistoryActive();
     threadEl().innerHTML = "";
+    aiMessages = [];
     yx.hiddenIds = []; yx.investing = null; yx.rentMode = false;
     updateHiddenChip();
     var all = allApts().slice().sort(function(a,b){ return b.rating-a.rating; });
@@ -1515,6 +1723,10 @@
     document.getElementById("yx-input").value = "";
     document.getElementById("hero-input").value = "";
     document.getElementById("browse-input").value = "";
+    var key = loadAIKey();
+    if (key){ runFreeTextAI(text); } else { runFreeTextHeuristic(text); }
+  }
+  function runFreeTextHeuristic(text){
     appendThinking(function(){
       var q = analyzeQuery(text);
       var scored = allApts().map(function(a){ var s=scoreApt(a,q); return {apt:a, score:s.score}; }).sort(function(x,y){ return y.score-x.score; });
@@ -1528,6 +1740,21 @@
         breakdown: fallback ? "Показываю популярные варианты по рейтингу." : breakdownLine(list)
       });
     }, 650);
+  }
+  function runFreeTextAI(text){
+    var thinkingEl = appendThinkingPersistent();
+    callClaudeAPI(text).then(function(result){
+      thinkingEl.remove();
+      renderAiText(result.text);
+      if (result.shownIds && result.shownIds.length){
+        var byId = {}; allApts().forEach(function(a){ byId[a.id] = a; });
+        var list = result.shownIds.map(function(id){ return byId[id]; }).filter(Boolean);
+        if (list.length){ renderMap(list); selectListing(list[0].id); }
+      }
+    }).catch(function(err){
+      thinkingEl.remove();
+      renderAiText("⚠️ " + (err && err.message ? err.message : "Не удалось связаться с ИИ."));
+    });
   }
 
   document.getElementById("yx-send").addEventListener("click", function(){ runFreeText(document.getElementById("yx-input").value); });
@@ -1575,6 +1802,46 @@
     document.body.classList.toggle("gel-active");
   });
   updateFavCount();
+
+  /* ---------------- AI settings modal ---------------- */
+  function maskKey(key){ return key.length > 10 ? key.slice(0,7) + "…" + key.slice(-4) : "••••••"; }
+  function updateAIStatus(){
+    var key = loadAIKey();
+    var on = !!key;
+    document.getElementById("ai-status-dot").classList.toggle("on", on);
+    document.getElementById("ai-status-dot").title = on ? "Живой ИИ включён" : "Живой ИИ выключен";
+    document.getElementById("ai-key-hint").textContent = on
+      ? "Ключ сохранён (" + maskKey(key) + ") — работает живой ИИ."
+      : "Ключ не задан — сейчас работает демо-эвристика.";
+    document.getElementById("yx-input").placeholder = on ? "Спросите RealtorAI о чём угодно…" : "Задайте свой вопрос";
+    document.getElementById("hero-input").placeholder = on ? "Спросите RealtorAI о недвижимости Грузии — и не только…" : "Хочу двушку в Ваке до $100 000, для сдачи в аренду";
+    document.getElementById("browse-input").placeholder = on ? "Спросите что угодно о недвижимости…" : "Какую квартиру ищете?";
+  }
+  function openAIModal(){
+    document.getElementById("ai-key-input").value = loadAIKey();
+    document.getElementById("ai-model-select").value = loadAIModel();
+    document.getElementById("ai-modal-backdrop").hidden = false;
+  }
+  function closeAIModal(){ document.getElementById("ai-modal-backdrop").hidden = true; }
+  document.getElementById("ai-settings-btn").addEventListener("click", openAIModal);
+  document.getElementById("ai-modal-close").addEventListener("click", closeAIModal);
+  document.getElementById("ai-modal-backdrop").addEventListener("click", function(e){ if (e.target === this) closeAIModal(); });
+  document.getElementById("ai-key-save").addEventListener("click", function(){
+    saveAIKey(document.getElementById("ai-key-input").value.trim());
+    saveAIModel(document.getElementById("ai-model-select").value);
+    aiMessages = [];
+    updateAIStatus();
+    closeAIModal();
+    toastQuick(loadAIKey() ? "Живой ИИ включён" : "Настройки ИИ сохранены");
+  });
+  document.getElementById("ai-key-clear").addEventListener("click", function(){
+    saveAIKey("");
+    document.getElementById("ai-key-input").value = "";
+    aiMessages = [];
+    updateAIStatus();
+    toastQuick("Ключ удалён — снова работает демо-эвристика");
+  });
+  updateAIStatus();
 
   /* ---------------- sidebar: categories, view switch, new chat, history, mobile ---------------- */
   function switchView(name){
