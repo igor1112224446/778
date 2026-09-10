@@ -1,7 +1,7 @@
 import type { Apartment } from "../types";
+import { roomPhotos } from "../utils/placeholderImage";
 
-const img = (seed: string, n: number) =>
-  Array.from({ length: n }, (_, i) => `https://picsum.photos/seed/${seed}-${i}/900/1200`);
+const img = (seed: string, n: number) => roomPhotos(seed, n);
 
 export const DISTRICTS = [
   "Центральный",
