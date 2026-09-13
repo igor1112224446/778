@@ -19,6 +19,8 @@ export default function MapView({ apartments, onClose }: Props) {
   const [selected, setSelected] = useState<Apartment | null>(null);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const dragged = useRef(false);
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinchStart = useRef<{ distance: number; zoom: number } | null>(null);
 
   const changeZoom = (delta: number) => setZoom((value) => Math.min(2.2, Math.max(0.75, value + delta)));
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
@@ -26,6 +28,17 @@ export default function MapView({ apartments, onClose }: Props) {
     changeZoom(event.deltaY > 0 ? -0.1 : 0.1);
   };
   const moveMap = (event: PointerEvent<HTMLDivElement>) => {
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    const activePointers = [...pointers.current.values()];
+
+    if (activePointers.length === 2 && pinchStart.current) {
+      const [first, second] = activePointers;
+      const distance = Math.hypot(first.x - second.x, first.y - second.y);
+      setZoom(Math.min(2.2, Math.max(0.75, pinchStart.current.zoom * (distance / pinchStart.current.distance))));
+      dragged.current = true;
+      return;
+    }
+
     if (!dragStart) return;
     if (Math.abs(event.clientX - dragStart.x) + Math.abs(event.clientY - dragStart.y) > 3) {
       dragged.current = true;
@@ -42,21 +55,44 @@ export default function MapView({ apartments, onClose }: Props) {
         onPointerDown={(event) => {
           dragged.current = false;
           event.currentTarget.setPointerCapture(event.pointerId);
-          setDragStart({ x: event.clientX, y: event.clientY });
+          pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+          const activePointers = [...pointers.current.values()];
+          if (activePointers.length === 2) {
+            const [first, second] = activePointers;
+            pinchStart.current = {
+              distance: Math.hypot(first.x - second.x, first.y - second.y),
+              zoom,
+            };
+            setDragStart(null);
+          } else {
+            setDragStart({ x: event.clientX, y: event.clientY });
+          }
         }}
         onPointerMove={moveMap}
         onPointerUp={(event) => {
-          event.currentTarget.releasePointerCapture(event.pointerId);
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          }
+          pointers.current.delete(event.pointerId);
+          pinchStart.current = null;
+          const [remainingPointer] = pointers.current.values();
+          setDragStart(remainingPointer ?? null);
+        }}
+        onPointerCancel={(event) => {
+          pointers.current.delete(event.pointerId);
+          pinchStart.current = null;
           setDragStart(null);
         }}
-        onPointerLeave={() => setDragStart(null)}
       >
         <div className="map-canvas" style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})` }}>
           <div className="map-river" />
           <div className="map-road road-one" /><div className="map-road road-two" /><div className="map-road road-three" />
           {apartments.map((apartment, index) => {
             const [left, top] = points[index % points.length];
-            return <button key={apartment.id} type="button" className="map-marker" style={{ left: `${left}%`, top: `${top}%` }} onPointerDown={(event) => event.stopPropagation()} onClick={() => !dragged.current && setSelected(apartment)} aria-label={`Открыть карточку: ${apartment.title}`}>
+            return <button key={apartment.id} type="button" className="map-marker" style={{ left: `${left}%`, top: `${top}%` }} onPointerDown={(event) => {
+              event.stopPropagation();
+              dragged.current = false;
+            }} onClick={() => !dragged.current && setSelected(apartment)} aria-label={`Открыть карточку: ${apartment.title}`}>
               {Math.round(apartment.price / 1000)}k
             </button>;
           })}
