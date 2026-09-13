@@ -1,30 +1,27 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import "./App.css";
 import Onboarding from "./components/Onboarding";
 import SwipeDeck from "./components/SwipeDeck";
 import ResultsScreen from "./components/ResultsScreen";
+import MapView from "./components/MapView";
 import { apartments } from "./data/apartments";
 import { filterApartments } from "./utils/filterApartments";
 import type { Apartment, OnboardingAnswers, SwipeDirection } from "./types";
 
 type Stage = "onboarding" | "swiping" | "done";
+type BrowseView = "cards" | "map";
 
 export default function App() {
   const [stage, setStage] = useState<Stage>("onboarding");
-  const [answers, setAnswers] = useState<OnboardingAnswers | null>(null);
   const [queue, setQueue] = useState<Apartment[]>([]);
   const [liked, setLiked] = useState<Apartment[]>([]);
-
-  const matchCount = useMemo(
-    () => (answers ? filterApartments(apartments, answers).length : 0),
-    [answers]
-  );
+  const [browseView, setBrowseView] = useState<BrowseView>("cards");
 
   const handleOnboardingComplete = (a: OnboardingAnswers) => {
     const filtered = filterApartments(apartments, a);
-    setAnswers(a);
     setQueue(filtered);
     setLiked([]);
+    setBrowseView("cards");
     setStage("swiping");
   };
 
@@ -41,9 +38,9 @@ export default function App() {
 
   const handleRestart = () => {
     setStage("onboarding");
-    setAnswers(null);
     setQueue([]);
     setLiked([]);
+    setBrowseView("cards");
   };
 
   const topApartment = queue[0];
@@ -54,15 +51,8 @@ export default function App() {
 
       {stage === "swiping" && (
         <div className="swipe-screen">
-          <header className="swipe-header">
-            <div>
-              <h1>Найдено {matchCount} вариантов</h1>
-              <p className="subtitle">Свайпайте вправо, если нравится, влево — если нет</p>
-            </div>
-          </header>
-
           {queue.length > 0 ? (
-            <>
+            browseView === "cards" ? <>
               <SwipeDeck apartments={queue} onSwipe={handleSwipe} />
               <div className="swipe-buttons">
                 <button
@@ -81,8 +71,16 @@ export default function App() {
                 >
                   ♥
                 </button>
+                <button
+                  type="button"
+                  className="round-btn round-btn-map"
+                  aria-label="Открыть карту объектов"
+                  onClick={() => setBrowseView("map")}
+                >
+                  ⌖
+                </button>
               </div>
-            </>
+            </> : <MapView apartments={queue} onClose={() => setBrowseView("cards")} />
           ) : (
             <ResultsScreen liked={liked} onRestart={handleRestart} />
           )}
