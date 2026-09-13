@@ -96,6 +96,9 @@ export default function ApartmentCard({ apartment, active }: Props) {
             </span>
           ))}
         </div>
+        <p className="rentch-concierge">
+          Консьерж Rentch поможет уточнить детали объекта и организовать просмотр.
+        </p>
       </div>
     </div>
   );
